@@ -1,0 +1,402 @@
+body {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  animation: backgroundAnimation 12s infinite;
+  height: 65vh; /* Set a fixed height for the body, 100vh means 100% of the viewport height */
+  margin: 0; /* Remove default body margin */
+}
+
+@keyframes backgroundAnimation {
+  0% {
+    background-image: url("pictures/cruise-view.jpg");
+  }
+  25% {
+    background-image: url("pictures/sunset.jpg");
+  }
+  50% {
+    background-image: url("pictures/beach4.jpg");
+  }
+  75% {
+    background-image: url("pictures/beach3.jpg");
+  }
+  100% {
+    background-image: url("pictures/beach2.jpg");
+  }
+  125% {
+    background-image: url("pictures/collosuem.jpg"); /* Reverse order back to the start */
+  }
+  150% {
+    background-image: url("pictures/beach1.jpg");
+  }
+  175% {
+    background-image: url("pictures/sunset.jpg");
+  }
+  200% {
+    background-image: url("pictures/cruise-view.jpg");
+  }
+}
+
+/*Navigation Bar*/
+.horizontal-nav {
+  margin-top: 30px;
+  margin-left: 350px; /* Adjust the left margin to position it */
+  align-items: center;
+  width: 800px;
+  font-family: scandia-web, ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans,
+    sans-serif, "Apple Color Emoji", "Segoe UI Emoji", Segoe UI Symbol,
+    "Noto Color Emoji";
+  font-weight: 500;
+  /* From https://css.glass */
+  background: rgba(255, 255, 255, 0.36);
+  border-radius: 16px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(3.8px);
+  -webkit-backdrop-filter: blur(3.8px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.horizontal-nav ul {
+  display: flex;
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  margin-left: 20px;
+}
+
+.horizontal-nav li {
+  padding: 14px 16px;
+}
+
+.horizontal-nav li a {
+  text-decoration: none;
+  color: #ffffff;
+}
+
+.horizontal-nav li a:hover {
+  color: #040404;
+}
+
+.horizontal-nav button {
+  border: 2px solid white;
+  background: transparent;
+  color: white;
+  padding: 10px 20px;
+  font-size: 14px;
+  margin: 5px;
+  cursor: pointer;
+  height: 40px;
+  width: 88px;
+  border-radius: 15px;
+}
+
+.horizontal-nav button:hover {
+  color: #000000;
+}
+/*Booking Form*/
+.booking-form {
+  top: 65%;
+  left: 50%;
+  transform: translateX(-50%);
+  position: absolute;
+  height: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  width: 400px; /* Adjust the max-width as needed */
+  margin: 0 auto;
+  padding: 20px; /* Add some padding for better appearance */
+  box-sizing: border-box; /* Include padding in the width calculation */
+  font-family: scandia-web, ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans,
+    sans-serif, "Apple Color Emoji", "Segoe UI Emoji", Segoe UI Symbol,
+    "Noto Color Emoji";
+}
+
+.booking-form h2 {
+  color: white;
+}
+
+.booking-form input {
+  margin-bottom: 20px;
+}
+
+.booking-form label {
+  margin-bottom: 20px;
+  color: white;
+}
+
+/* Adjust the width and height of the form-container as needed */
+
+.title {
+  font-size: 3em;
+  line-height: 1.2;
+  text-align: center;
+  font-family: scandia-web, ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans,
+    sans-serif, "Apple Color Emoji", "Segoe UI Emoji", Segoe UI Symbol,
+    "Noto Color Emoji";
+  color: white;
+}
+
+/*Book a Trip Button*/
+.title button {
+  border: 2px solid black;
+  background: rgba(10, 10, 10, 0.25);
+  border-radius: 16px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(5.4px);
+  -webkit-backdrop-filter: blur(5.4px);
+  border: 1px solid rgba(10, 10, 10, 0.48);
+  color: white;
+  padding: 10px 20px;
+  font-size: 18px;
+  margin: 5px;
+  cursor: pointer;
+  height: 40px;
+  width: 170px;
+  border-radius: 15px;
+  margin-bottom: 100px;
+}
+
+.title button:hover {
+  background-color: black;
+  color: white;
+}
+
+.select {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 25px;
+  width: 100%;
+}
+.select select {
+  font-family: scandia-web, ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans,
+    sans-serif, "Apple Color Emoji", "Segoe UI Emoji", Segoe UI Symbol,
+    "Noto Color Emoji";
+  display: inline-block;
+  width: 100%;
+  cursor: pointer;
+  padding: 14px 30px;
+  outline: 0;
+  border: 0px solid #000000;
+  border-radius: 34px;
+  background: #e6e6e6;
+  color: #020202;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+.select select::-ms-expand {
+  display: none;
+}
+.select select:hover,
+.select select:focus {
+  color: #000000;
+  background: #ffffff;
+}
+.select select:disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+.select_arrow {
+  position: absolute;
+  top: 17px;
+  right: 24px;
+  pointer-events: none;
+  border-style: solid;
+  border-width: 8px 5px 0px 5px;
+  border-color: #000000 transparent transparent transparent;
+}
+.select select:hover ~ .select_arrow,
+.select select:focus ~ .select_arrow {
+  border-top-color: #000000;
+}
+.select select:disabled ~ .select_arrow {
+  border-top-color: #000000;
+}
+
+.container {
+  display: flex;
+  background-color: white;
+  width: 1480px;
+  height: 1200px;
+  margin-top: 300px;
+}
+
+/*Carousel Sliders*/
+.pic-container{
+  position: relative;
+  margin-top:300px;
+  background-color: white;
+  width: 1480px;
+  height: 1400px;
+  background-color: rgba(229, 207, 78, 1);
+}
+
+
+
+.pic-container p{
+  color: white;
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  position: absolute;
+  font-size: 32px;
+  left: 20%;
+  top: 5%;
+}
+
+.carousel {
+  position: absolute;
+  margin-top: 250px;
+  margin-left: 7%;
+  margin-right: 5%;
+  width: 1300px;
+}
+
+ul.slides {
+  display: block;
+  position: relative;
+  height: 600px;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  list-style: none;
+}
+
+.slides * {
+  user-select: none;
+  -ms-user-select: none;
+  -moz-user-select: none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+ul.slides input {
+  display: none; 
+}
+
+
+.slide-container { 
+  display: block; 
+}
+
+.slide-image {
+  display: block;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  opacity: 0;
+  transition: all .7s ease-in-out;
+}   
+
+.slide-image img {
+  width: auto;
+  min-width: 100%;
+  height: 100%;
+}
+
+.carousel-controls {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 999;
+  font-size: 100px;
+  line-height: 600px;
+  color: #fff;
+}
+
+.carousel-controls label {
+  display: none;
+  position: absolute;
+  padding: 0 20px;
+  opacity: 0;
+  transition: opacity .2s;
+  cursor: pointer;
+}
+
+.slide-image:hover + .carousel-controls label{
+  opacity: 0.5;
+}
+
+.carousel-controls label:hover {
+  opacity: 1;
+}
+
+.carousel-controls .prev-slide {
+  width: 49%;
+  text-align: left;
+  left: 0;
+}
+
+.carousel-controls .next-slide {
+  width: 49%;
+  text-align: right;
+  right: 0;
+}
+
+.carousel-dots {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 20px;
+  z-index: 999;
+  text-align: center;
+}
+
+.carousel-dots .carousel-dot {
+  display: inline-block;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: #fff;
+  opacity: 0.5;
+  margin: 10px;
+}
+
+input:checked + .slide-container .slide-image {
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 1s ease-in-out;
+}
+
+input:checked + .slide-container .carousel-controls label {
+   display: block; 
+}
+
+input#img-1:checked ~ .carousel-dots label#img-dot-1,
+input#img-2:checked ~ .carousel-dots label#img-dot-2,
+input#img-3:checked ~ .carousel-dots label#img-dot-3,
+input#img-4:checked ~ .carousel-dots label#img-dot-4,
+input#img-5:checked ~ .carousel-dots label#img-dot-5,
+input#img-6:checked ~ .carousel-dots label#img-dot-6 {
+opacity: 1;
+}
+
+
+input:checked + .slide-container .nav label { display: block; }
+
+footer {
+  color: #000000;
+  text-align: center;
+  background-color: white;
+  padding: 20px; /* Adjust padding as needed */
+}
+
+footer p {
+  text-align: center;
+  background-color: white;
+  padding: 5px; /* Adjust padding as needed */
+}
+
+footer  hr{
+  border: 1px solid #363636; /* Set the color of the line */
+  margin: 10px 0; /* Adjust the top and bottom margin as needed */
+}
+
