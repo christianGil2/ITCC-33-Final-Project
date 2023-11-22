@@ -25,12 +25,14 @@ body {
 
 .form {
   position: absolute;
-  top: 10%;
-  left: 35%;
+  top: 15%;
+  left: 37%;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  max-width: 590px;
+  max-width: 490px;
+  width: 300px;
+  height: 400px;
   padding: 40px;
   border-radius: 20px;
   background-color: #1a1a1a;
@@ -104,11 +106,12 @@ body {
   background-color: #333;
   color: #fff;
   width: 100%;
-  padding: 20px 05px 05px 5px;
+  padding: 20px 06px 10px 5px;
   outline: 0;
   border: 1px solid rgba(105, 105, 105, 0.397);
   border-radius: 10px;
   box-sizing: border-box; 
+  margin-bottom: 20px;
 }
 
 .form label .input + span {
