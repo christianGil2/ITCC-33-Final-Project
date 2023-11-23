@@ -16,7 +16,6 @@ app.get('/', (req, res) => {
 
 // Define a function to generate the script for the pop-up
 function generatePopupScript(message, redirectUrl) {
-  return `<script>alert("${message}. Click OK to proceed."); window.location.href="${redirectUrl}";</script>`;
 }
 
 app.post('/login', async (req, res) => {
@@ -40,7 +39,7 @@ app.post('/login', async (req, res) => {
       if (user) {
         res.send(generatePopupScript('Login successful', '/'));
       } else {
-        res.send(generatePopupScript('Invalid credentials', '/'));
+        res.send(generatePopupScript('Invalid credentials'));
       }
     } finally {
       await client.close();
