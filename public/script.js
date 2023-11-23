@@ -18,7 +18,10 @@ document.addEventListener("DOMContentLoaded", function () {
       // Send form data to the server
       const response = await fetch('/login', {
         method: 'POST',
-        body: formData,
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams(formData).toString(),
       });
 
       const data = await response.text();
