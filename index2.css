@@ -43,7 +43,7 @@ body {
     margin-top: 30px;
     margin-left: 350px; /* Adjust the left margin to position it */
     align-items: center;
-    width: 800px;
+    width: 820px;
     font-family: scandia-web, ui-sans-serif, system-ui, -apple-system,
       BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans,
       sans-serif, "Apple Color Emoji", "Segoe UI Emoji", Segoe UI Symbol,
@@ -87,8 +87,8 @@ body {
     font-size: 14px;
     margin: 5px;
     cursor: pointer;
-    height: 40px;
-    width: 88px;
+    height: 45px;
+    width: 135px;
     border-radius: 15px;
   }
   
