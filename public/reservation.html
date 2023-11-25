@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reservation</title>
+    <link rel="stylesheet" href="reservation.css">
+</head>
+<body>
+    <header class="head-bar">
+        <nav class="navigation-bar">
+          <ul>
+            <li><a href="index2.html">Find your Cruise</a></li>
+            <li><a href="index2.html">Destinations</a></li>
+            <li><a href="index2.html">Cruise Lines</a></li>
+            <li><a href="index2.html">Ship</a></li>
+            <li><a href="index2.html">Ports</a></li>
+            <li><a href="index2.html">Cruise Guides</a></li>
+          </ul>
+        </nav>
+      </header>
+
+    <div class="reservation-form">
+        <h2>Your Balance: 5000 pesos</h2>
+
+        <label for="destination">Destination:</label>
+        <div class="select1">
+            <select id="destination" name="destinations">
+                <option value="" disabled selected>Destinations</option>
+                <option value="siargao">Siargao Island</option>
+                <option value="camiguin">Camiguin</option>
+                <option value="ozamis">Ozamis</option>
+                <option value="boracay">Boracay</option>
+                <option value="zamboanga">Zamboanga</option>
+            </select>
+            <div class="select1_arrow"></div>
+        </div>
+
+        <label for="sailingDate">Sailing Date:</label>
+        <div class="select2">
+            <select id="sailingDate" name="sailingDates">
+                <option value="" disabled selected>Sailing Dates</option>
+                <option value="01/05/2024">01/05/2024</option>
+                <option value="02/03/2024">02/03/2024</option>
+                <option value="03/09/2024">03/09/2024</option>
+                <option value="04/13/2024">04/13/2024</option>
+                <option value="05/24/2024">05/24/2024</option>
+            </select>
+            <div class="select2_arrow"></div>
+        </div>
+
+        <label for="cruise">Cruise:</label>
+        <div class="select3">
+            <select id="cruise" name="cruiseLines">
+                <option value="" disabled selected>All Cruise</option>
+                <option value="2go">2GO</option>
+                <option value="unitedPhilippines">United Philippines Lines Inc</option>
+                <option value="osmMaritime">OSM Maritime Services Inc</option>
+                <option value="ssmMaritime">SSM Maritime Services Inc</option>
+                <option value="singaShip">Singa Ship Management Phils Inc</option>
+            </select>
+            <div class="select3_arrow"></div>
+        </div>
+
+        <label for="port">Port:</label>
+        <div class="select4">
+            <select id="port" name="port">
+                <option value="" disabled selected>Port</option>
+                <option value="balingoan">Balingoan</option>
+                <option value="cagayanDeOro">Cagayan de Oro</option>
+                <option value="butuan">Butuan</option>
+                <option value="dapitan">Dapitan</option>
+                <option value="dipolog">Dipolog</option>
+            </select>
+            <div class="select4_arrow"></div>
+        </div>
+
+        <label for="amount">Amount:</label>
+        <div id="amount">800 pesos</div>
+
+        <button class ="reservationButton" id="payNow" onclick="payNow()">Pay Now</button>
+
+        <!-- Ticket display -->
+        <div id="ticket" class="hidden">
+            <h3>Ticket Details:</h3>
+            <p>Destination: <span id="ticketDestination"></span></p>
+            <p>Sailing Date: <span id="ticketSailingDate"></span></p>
+            <p>Cruise: <span id="ticketCruise"></span></p>
+            <p>Port: <span id="ticketPort"></span></p>
+            <p>Departure Schedule: <span id="ticketDepartureDate"></span></p>
+            <p>Seat Number: <span id="ticketSeatNumber"></span></p>
+        </div>
+    </div>
+    <footer>
+        <hr />
+        <p>&copy; Beyond The Sea, All rights reserved.</p>
+      </footer>
+    <script src="script.js"></script>
+</body>
+</html>

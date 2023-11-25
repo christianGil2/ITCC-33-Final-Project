@@ -1,83 +1,121 @@
-document.addEventListener("DOMContentLoaded", async function () {
-  document.getElementById("loginForm").addEventListener("submit", async function (e) {
-    e.preventDefault();
+const express = require('express');
+const bodyParser = require('body-parser');
+const { MongoClient } = require('mongodb');
+const session = require('express-session');
 
-    const formData = new FormData(e.target);
-    const email = formData.get("email");
-    const password = formData.get("password");
+const app = express();
+const PORT = 3000;
+const MONGODB_URI = 'mongodb://127.0.0.1:27017';
 
-    if (!email || !password) {
-      alert("Both email and password are required");
-      return;
-    }
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static(__dirname + '/public'));
 
-    try {
-      const response = await fetch('/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams(formData).toString(),
-      });
+// Session middleware setup
+app.use(session({
+  secret: 'your-secret-key',
+  resave: false,
+  saveUninitialized: true,
+}));
 
-      const data = await response.text();
+// Define a function to generate the script for the pop-up
+function generatePopupScript(message, redirectUrl) {
+  return `<script>alert("${message}. Click OK to proceed."); window.location.href="${redirectUrl}";</script>`;
+}
 
-      if (data.includes('Login successful')) {
-        const message = 'Login successful';
-        const redirectUrl = '/index2.html';
-        showAlert(message, redirectUrl);
+async function checkCredentials(email, password) {
+  const client = new MongoClient(MONGODB_URI);
 
-        // Add a delay or use await before calling updateProfileInfo
-        setTimeout(updateProfileInfo, 500); // Adjust the delay as needed
-      } else {
-        const message = 'Invalid credentials';
-        showAlert(message);
-      }
-    } catch (error) {
-      console.error('Error:', error);
-    }
-  });
+  try {
+    await client.connect();
+    const database = client.db('register');
+    const collection = database.collection('user');
 
-  document.getElementById("registerForm").addEventListener("submit", async function (e) {
-    e.preventDefault();
+    // Check user credentials in the MongoDB collection
+    const user = await collection.findOne({ email, password });
 
-    const formData = new FormData(e.target);
-    const password = formData.get("password");
-    const confirmPassword = formData.get("confirmPassword");
+    return !!user; // Return true if the user is found, false otherwise
+  } finally {
+    await client.close();
+  }
+}
 
-    if (password !== confirmPassword) {
-      alert("Password and Confirm Password do not match");
-      return;
-    }
-
-    try {
-      const response = await fetch('/register', {
-        method: 'POST',
-        body: formData,
-      });
-
-      const data = await response.text();
-
-      if (data.includes('Registration successful')) {
-        const message = 'Registration successful. Click OK to proceed to login.';
-        const redirectUrl = '/';
-        showAlert(message, redirectUrl);
-
-        // Add a delay or use await before calling updateProfileInfo
-        setTimeout(updateProfileInfo, 500); // Adjust the delay as needed
-      } else {
-        showAlert(data);
-      }
-    } catch (error) {
-      console.error('Error:', error);
-    }
-  });
-
-  function showAlert(message, redirectUrl) {
-    alert(`${message}. Click OK to proceed.`);
-    if (redirectUrl) {
-      window.location.href = redirectUrl;
-    }
+// New route to get user data
+app.get('/get-user', async (req, res) => {
+  if (!req.session.userEmail) {
+    return res.status(401).json({ error: 'Unauthorized' });
   }
 
+  const client = new MongoClient(MONGODB_URI);
+
+  try {
+    await client.connect();
+    const database = client.db('register');
+    const collection = database.collection('user');
+
+    const userEmail = req.session.userEmail;
+
+    // Corrected query field from 'email' to 'email'
+    const user = await collection.findOne({ email: userEmail });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json(user);
+  } catch (error) {
+    console.error('Error fetching user data:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  } finally {
+    await client.close();
+  }
+});
+
+app.post('/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const isValidCredentials = await checkCredentials(email, password);
+
+    if (isValidCredentials) {
+      req.session.userEmail = email;
+      res.send(generatePopupScript('Login successful', '/'));
+    } else {
+      res.send(generatePopupScript('Invalid credentials'));
+    }
+  } catch (error) {
+    console.error('Error checking credentials:', error);
+    res.send(generatePopupScript('Error during login. Please try again.'));
+  }
+});
+
+app.post('/register', async (req, res) => {
+  let client; // Define the client variable
+
+  try {
+    const { firstname, lastname, email, password, confirmPassword, city, age, phoneNum, emergencyNum } = req.body;
+    client = new MongoClient(MONGODB_URI);
+
+    await client.connect();
+    const database = client.db('register');
+    const collection = database.collection('user');
+    const existingUser = await collection.findOne({ email });
+
+    if (existingUser) {
+      res.send(generatePopupScript('Email already registered', '/'));
+    } else {
+      await collection.insertOne({ firstname, lastname, email, password, city, age, phoneNum, emergencyNum });
+      res.send(generatePopupScript('Registration successful', '/'));
+    }
+  } catch (error) {
+    console.error('Error during registration:', error);
+    res.send(generatePopupScript('Error during registration. Please try again.'));
+  } finally {
+    if (client) {
+      await client.close();
+    }
+  }
+});
+
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
 });
