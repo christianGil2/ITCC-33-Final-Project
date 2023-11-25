@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", function () {
       if (data.includes('Login successful')) {
         // Display a pop-up for success with only an "OK" button
         const message = 'Login successful';
-        const redirectUrl = '/';
+        const redirectUrl = '/index2.html';
         showAlert(message, redirectUrl);
       } else {
         // Display a pop-up for error with only an "OK" button
