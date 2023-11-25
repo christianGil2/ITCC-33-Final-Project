@@ -1,121 +1,121 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const { MongoClient } = require('mongodb');
-const session = require('express-session');
+document.addEventListener("DOMContentLoaded", async function () {
+  document.getElementById("loginForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
 
-const app = express();
-const PORT = 3000;
-const MONGODB_URI = 'mongodb://127.0.0.1:27017';
+    const formData = new FormData(e.target);
+    const email = formData.get("email");
+    const password = formData.get("password");
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static(__dirname + '/public'));
-
-// Session middleware setup
-app.use(session({
-  secret: 'your-secret-key',
-  resave: false,
-  saveUninitialized: true,
-}));
-
-// Define a function to generate the script for the pop-up
-function generatePopupScript(message, redirectUrl) {
-  return `<script>alert("${message}. Click OK to proceed."); window.location.href="${redirectUrl}";</script>`;
-}
-
-async function checkCredentials(email, password) {
-  const client = new MongoClient(MONGODB_URI);
-
-  try {
-    await client.connect();
-    const database = client.db('register');
-    const collection = database.collection('user');
-
-    // Check user credentials in the MongoDB collection
-    const user = await collection.findOne({ email, password });
-
-    return !!user; // Return true if the user is found, false otherwise
-  } finally {
-    await client.close();
-  }
-}
-
-// New route to get user data
-app.get('/get-user', async (req, res) => {
-  if (!req.session.userEmail) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-
-  const client = new MongoClient(MONGODB_URI);
-
-  try {
-    await client.connect();
-    const database = client.db('register');
-    const collection = database.collection('user');
-
-    const userEmail = req.session.userEmail;
-
-    // Corrected query field from 'email' to 'email'
-    const user = await collection.findOne({ email: userEmail });
-
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+    if (!email || !password) {
+      alert("Both email and password are required");
+      return;
     }
 
-    res.json(user);
-  } catch (error) {
-    console.error('Error fetching user data:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  } finally {
-    await client.close();
-  }
-});
+    try {
+      const response = await fetch('/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams(formData).toString(),
+      });
 
-app.post('/login', async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const isValidCredentials = await checkCredentials(email, password);
+      const data = await response.text();
 
-    if (isValidCredentials) {
-      req.session.userEmail = email;
-      res.send(generatePopupScript('Login successful', '/'));
-    } else {
-      res.send(generatePopupScript('Invalid credentials'));
+      if (data.includes('Login successful')) {
+        const message = 'Login successful';
+        const redirectUrl = '/index2.html';
+        showAlert(message, redirectUrl);
+
+        // Add a delay or use await before calling updateProfileInfo
+        setTimeout(updateProfileInfo, 500); // Adjust the delay as needed
+      } else {
+        const message = 'Invalid credentials';
+        showAlert(message);
+      }
+    } catch (error) {
+      console.error('Error:', error);
     }
-  } catch (error) {
-    console.error('Error checking credentials:', error);
-    res.send(generatePopupScript('Error during login. Please try again.'));
-  }
-});
+  });
 
-app.post('/register', async (req, res) => {
-  let client; // Define the client variable
+  document.getElementById("registerForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
 
-  try {
-    const { firstname, lastname, email, password, confirmPassword, city, age, phoneNum, emergencyNum } = req.body;
-    client = new MongoClient(MONGODB_URI);
+    const formData = new FormData(e.target);
+    const password = formData.get("password");
+    const confirmPassword = formData.get("confirmPassword");
 
-    await client.connect();
-    const database = client.db('register');
-    const collection = database.collection('user');
-    const existingUser = await collection.findOne({ email });
-
-    if (existingUser) {
-      res.send(generatePopupScript('Email already registered', '/'));
-    } else {
-      await collection.insertOne({ firstname, lastname, email, password, city, age, phoneNum, emergencyNum });
-      res.send(generatePopupScript('Registration successful', '/'));
+    if (password !== confirmPassword) {
+      alert("Password and Confirm Password do not match");
+      return;
     }
-  } catch (error) {
-    console.error('Error during registration:', error);
-    res.send(generatePopupScript('Error during registration. Please try again.'));
-  } finally {
-    if (client) {
-      await client.close();
+
+    try {
+      const response = await fetch('/register', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.text();
+
+      if (data.includes('Registration successful')) {
+        const message = 'Registration successful. Click OK to proceed to login.';
+        const redirectUrl = '/';
+        showAlert(message, redirectUrl);
+
+        // Add a delay or use await before calling updateProfileInfo
+        setTimeout(updateProfileInfo, 500); // Adjust the delay as needed
+      } else {
+        showAlert(data);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  });
+
+  function showAlert(message, redirectUrl) {
+    alert(`${message}. Click OK to proceed.`);
+    if (redirectUrl) {
+      window.location.href = redirectUrl;
     }
   }
-});
 
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+  document.getElementById("payNow").addEventListener("click", async function () {
+    try {
+      // Get selected values from dropdowns
+      const destination = document.getElementById("destination").value;
+      const sailingDate = document.getElementById("sailingDate").value;
+      const cruise = document.getElementById("cruise").value;
+      const port = document.getElementById("port").value;
+      const amount = document.getElementById("amount").innerText;
+
+      // Make a POST request to the /pay-now endpoint
+      const response = await fetch('/pay-now', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ destination, sailingDate, cruise, port, amount }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert(data.message);
+      } else {
+        alert('Error processing payment. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error during payment:', error);
+      alert('Error processing payment. Please try again.');
+    }
+  });
+
+  function showAlert(message, redirectUrl) {
+    alert(`${message}. Click OK to proceed.`);
+    if (redirectUrl) {
+      window.location.href = redirectUrl;
+    }
+  }
+
 });
