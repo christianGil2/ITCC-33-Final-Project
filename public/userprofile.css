@@ -2,27 +2,27 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 170vh;
+    margin: 0;
 }
-  
 
 .navigation-bar {
-  position: absolute;
-  top: -1%;
-  left: -1%;
-  background: #295196;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  list-style-type: none;
-  padding: 0;
-  width: 1495px;
-  height: 80px;
-  font-size: 18px;
-  font-family: scandia-web, ui-sans-serif, system-ui, -apple-system,
-    BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans,
-    sans-serif, "Apple Color Emoji", "Segoe UI Emoji", Segoe UI Symbol,
-    "Noto Color Emoji";
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: #295196;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    list-style-type: none;
+    padding: 0;
+    width: 100%;
+    height: 80px;
+    font-size: 18px;
+    font-family: "scandia-web", ui-sans-serif, system-ui, -apple-system,
+        BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans,
+        sans-serif, "Apple Color Emoji", "Segoe UI Emoji", Segoe UI Symbol,
+        "Noto Color Emoji";
 }
 
 .navigation-bar ul {
@@ -30,131 +30,109 @@ body {
   list-style-type: none;
   margin: 0;
   padding: 0;
-  margin-left: 350px;
+  margin-left: 50px;
 }
 
 .navigation-bar li {
-  margin-right: 20px;
+margin-right: 20px;
 }
 
 .navigation-bar li a {
-  color: #e6e6e6;
-  text-decoration: none;
-  margin-right: 20px;
+color: #e6e6e6;
+text-decoration: none;
+margin-right: 20px;
 }
 
 .navigation-bar li a:hover {
-  color: #b3b3b3;
+color: #b3b3b3;
 }
 
 .profile-bar {
-  position: absolute;
-  top: 12%;
-  height: 620px;
-  width: 1480px;
-  font-family: Arial, Helvetica, sans-serif;
+    position: relative;
+    margin-top: 80px;
+    padding: 20px;
+    font-family: Arial, Helvetica, sans-serif;
 }
 
 .title {
-  position: absolute;
-  top: 1%;
-  left: 15%;
-  font-size: 30px;
-  color: #666;
-}
-
-.title h2 {
-  font-weight: 700;
+    font-size: 30px;
+    color: #666;
+    margin-bottom: 20px;
 }
 
 .line1 {
-  position: absolute;
-  top: 70%;
-  width: 1050px;
+    width: 100%;
+    margin-top: 20px;
+    border: 1px solid #ccc;
 }
 
 .dashboard {
-  position: absolute;
-  top: 16%;
-  left: 15%;
-  font-size: 18px;
-  margin-top: 20px;
-  font-family: Verdana, Geneva, Tahoma, sans-serif;
+    font-size: 18px;
+    margin-top: 20px;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
 }
 
 .dashboard p {
-  display: block;
-  margin-top: 15px;
-  width: 650px;
-  text-align: justify;
-  font-size: 16px;
-  margin-left: 280px;
+    text-align: justify;
+    font-size: 16px;
 }
 
 .dashboard hr {
-  width: 1050px;
-  margin-top: 60px;
+    width: 100%;
+    margin-top: 20px;
+    border: 1px solid #ccc;
 }
 
 .dashboard h2 {
-  margin-bottom: 20px;
-  color: #666;
-  font-size: 22px;
+    margin-bottom: 20px;
+    color: #666;
+    font-size: 22px;
 }
 
 .profile-info {
-  position: absolute;
-  top: 65%;
-  left: 15%;
-  font-size: 20px;
-  font-family: "Trebuchet MS", "Lucida Sans Unicode", "Lucida Grande",
-    "Lucida Sans", Arial, sans-serif;
-}
-
-.profile-info label {
-  display: block;
-  margin-top: 30px;
-  margin-bottom: 15px;
+    font-size: 20px;
+    font-family: "Trebuchet MS", "Lucida Sans Unicode", "Lucida Grande",
+        "Lucida Sans", Arial, sans-serif;
 }
 
 .profile-info h2 {
-  margin-bottom: 20px;
-  color: #666;
-  font-size: 22px;
+    margin-bottom: 20px;
+    color: #666;
+    font-size: 22px;
 }
 
-.profile-info input{
-    width: 300px;
-    height: 30px;
-    border: 2px solid rgb(200, 200, 200);
-    background-color: transparent;
-    border-radius: 20px;
-    
+.profile-info label {
+    display: block;
+    margin-top: 15px;
+    color: #333;
+}
+
+.profile-info span {
+    display: block;
+    margin-top: 5px;
+    font-weight: bold;
+    color: #666;
 }
 
 .img1 {
-  position: absolute;
-  margin-top: 20px;
-  top: 15%;
-  left: 1%;
+    margin-top: 20px;
 }
 
 footer {
-    color: #000000;
-    text-align: center;
-    background-color: #295196;
-    padding: 20px; /* Adjust padding as needed */
-    margin-top: auto;
-  }
-  
-  footer p {
-    text-align: center;
-   color: white;
-    padding: 5px; /* Adjust padding as needed */
-  }
-  
-  footer hr {
-    border: 1px solid #ffffff; /* Set the color of the line */
-    margin: 1px 0; /* Adjust the top and bottom margin as needed */
-  }
-  
+  color: #000000;
+  text-align: center;
+  background-color: #295196;
+  padding: 20px; /* Adjust padding as needed */
+  margin-top: auto;
+}
+
+footer p {
+  text-align: center;
+ color: white;
+  padding: 5px; /* Adjust padding as needed */
+}
+
+footer hr {
+  border: 1px solid #ffffff; /* Set the color of the line */
+  margin: 1px 0; /* Adjust the top and bottom margin as needed */
+}
