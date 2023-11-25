@@ -1,14 +1,21 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const { MongoClient } = require('mongodb');
+const session = require('express-session');
 
 const app = express();
 const PORT = 3000;
 const MONGODB_URI = 'mongodb://127.0.0.1:27017';
 
 app.use(bodyParser.urlencoded({ extended: true }));
-
 app.use(express.static(__dirname + '/public'));
+
+// Session middleware setup
+app.use(session({
+  secret: 'your-secret-key',
+  resave: false,
+  saveUninitialized: true,
+}));
 
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/Loginform.html');
@@ -29,12 +36,34 @@ async function checkCredentials(email, password) {
 
     // Check user credentials in the MongoDB collection
     const user = await collection.findOne({ email, password });
-    
+
     return !!user; // Return true if the user is found, false otherwise
   } finally {
     await client.close();
   }
 }
+
+// New route to get user data
+app.get('/get-user', async (req, res) => {
+  const client = new MongoClient(MONGODB_URI);
+
+  try {
+    await client.connect();
+    const database = client.db('register');
+    const collection = database.collection('user');
+
+    const userEmail = req.session.userEmail;
+
+    const user = await collection.findOne({ email: userEmail });
+
+    res.json(user);
+  } catch (error) {
+    console.error('Error fetching user data:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  } finally {
+    await client.close();
+  }
+});
 
 app.post('/login', async (req, res) => {
   const { email, password } = req.body;
@@ -43,6 +72,8 @@ app.post('/login', async (req, res) => {
     const isValidCredentials = await checkCredentials(email, password);
 
     if (isValidCredentials) {
+      // Set the user's email in the session (assuming you are using sessions)
+      req.session.userEmail = email;
       res.send(generatePopupScript('Login successful', '/'));
     } else {
       res.send(generatePopupScript('Invalid credentials'));

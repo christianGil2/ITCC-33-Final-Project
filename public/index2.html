@@ -5,6 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Beyond The Sea</title>
     <link rel="stylesheet" href="index2.css" />
+    <script>
+      // Function to update the user's name in the button
+      async function updateUserName() {
+        try {
+          // Fetch user data from the server
+          const response = await fetch('/get-user');
+          const userData = await response.json();
+
+          // Update the user's name in the button
+          const userNameButton = document.getElementById('userNameButton');
+          if (userData && userData.firstname) {
+            userNameButton.innerText = `Welcome, ${userData.firstname}!`;
+          } else {
+            userNameButton.innerText = 'Name of User';
+          }
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+        }
+      }
+
+      // Function to toggle the dropdown
+      function toggleDropdown() {
+        const dropdownContent = document.getElementById('dropdownContent');
+        dropdownContent.classList.toggle('show');
+      }
+
+      // Call the function when the page loads
+      document.addEventListener('DOMContentLoaded', updateUserName);
+    </script>
   </head>
   <body>
     <header>
@@ -17,7 +46,16 @@
           <li><a href="#">Ports</a></li>
           <li><a href="#">Cruise Guide</a></li>
 
-          <a href="userprofile.html"><button>Name sa User</button></a>
+          <li>
+            <div class="dropdown" id="userDropdown">
+              <button onclick="toggleDropdown()" id="userNameButton">Name of User</button>
+              <div class="dropdown-content" id="dropdownContent">
+                <a href="userprofile.html">User Profile</a>
+                <a href="reservation.html">View Reservation</a>
+                <a href="index.html">Log Out</a>
+              </div>
+            </div>
+          </li>
         </ul>
       </nav>
     </header>

@@ -2,10 +2,7 @@ document.addEventListener("DOMContentLoaded", function () {
   document.getElementById("loginForm").addEventListener("submit", async function (e) {
     e.preventDefault();
 
-    // Collect form data
     const formData = new FormData(e.target);
-
-    // Validate form data
     const email = formData.get("email");
     const password = formData.get("password");
 
@@ -15,7 +12,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     try {
-      // Send form data to the server
       const response = await fetch('/login', {
         method: 'POST',
         headers: {
@@ -26,17 +22,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
       const data = await response.text();
 
-      // Handle the server response
       if (data.includes('Login successful')) {
-        // Display a pop-up for success with only an "OK" button
         const message = 'Login successful';
         const redirectUrl = '/index2.html';
         showAlert(message, redirectUrl);
       } else {
-        // Display a pop-up for error with only an "OK" button
         const message = 'Invalid credentials';
         showAlert(message);
-        // Optionally, you can handle different error messages here
       }
     } catch (error) {
       console.error('Error:', error);
@@ -46,10 +38,7 @@ document.addEventListener("DOMContentLoaded", function () {
   document.getElementById("registerForm").addEventListener("submit", async function (e) {
     e.preventDefault();
 
-    // Collect form data
     const formData = new FormData(e.target);
-
-    // Validate form data, including password confirmation
     const password = formData.get("password");
     const confirmPassword = formData.get("confirmPassword");
 
@@ -59,7 +48,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     try {
-      // Send form data to the server
       const response = await fetch('/register', {
         method: 'POST',
         body: formData,
@@ -67,27 +55,40 @@ document.addEventListener("DOMContentLoaded", function () {
 
       const data = await response.text();
 
-      // Handle the server response for registration
       if (data.includes('Registration successful')) {
-        // Display a pop-up for success with only an "OK" button
         const message = 'Registration successful. Click OK to proceed to login.';
         const redirectUrl = '/';
         showAlert(message, redirectUrl);
       } else {
-        // Display a pop-up for error with only an "OK" button
         showAlert(data);
-        // Optionally, you can handle different error messages here
       }
     } catch (error) {
       console.error('Error:', error);
     }
   });
 
-  // Function to show a pop-up with an optional redirect
   function showAlert(message, redirectUrl) {
     alert(`${message}. Click OK to proceed.`);
     if (redirectUrl) {
       window.location.href = redirectUrl;
     }
   }
+
+  async function updateUserName() {
+    try {
+      const response = await fetch('/get-user');
+      const userData = await response.json();
+
+      const userNameButton = document.getElementById('userNameButton');
+      if (userData && userData.firstname) {
+        userNameButton.innerText = `Welcome, ${userData.firstname}!`;
+      } else {
+        userNameButton.innerText = 'Name of User';
+      }
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+    }
+  }
+
+  updateUserName();
 });
