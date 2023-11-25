@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", async function () {
   document.getElementById("loginForm").addEventListener("submit", async function (e) {
     e.preventDefault();
 
@@ -26,6 +26,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const message = 'Login successful';
         const redirectUrl = '/index2.html';
         showAlert(message, redirectUrl);
+        updateProfileInfo(); // Update profile information after login
       } else {
         const message = 'Invalid credentials';
         showAlert(message);
@@ -59,6 +60,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const message = 'Registration successful. Click OK to proceed to login.';
         const redirectUrl = '/';
         showAlert(message, redirectUrl);
+        updateProfileInfo(); // Update profile information after registration
       } else {
         showAlert(data);
       }
@@ -74,21 +76,21 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  async function updateUserName() {
+  async function updateProfileInfo() {
     try {
       const response = await fetch('/get-user');
       const userData = await response.json();
 
-      const userNameButton = document.getElementById('userNameButton');
-      if (userData && userData.firstname) {
-        userNameButton.innerText = `Welcome, ${userData.firstname}!`;
-      } else {
-        userNameButton.innerText = 'Name of User';
-      }
+      // Update profile information on the page
+      document.querySelector('input[name="firstname"]').value = userData.firstname;
+      document.querySelector('input[name="lastname"]').value = userData.lastname;
+      document.querySelector('input[name="email"]').value = userData.email;
+      document.querySelector('input[name="city"]').value = userData.city;
+      document.querySelector('input[name="phoneNum"]').value = userData.phoneNum;
     } catch (error) {
       console.error('Error fetching user data:', error);
     }
   }
 
-  updateUserName();
+  updateProfileInfo(); // Initial update of profile information
 });

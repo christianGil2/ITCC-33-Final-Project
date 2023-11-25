@@ -7,7 +7,8 @@ const app = express();
 const PORT = 3000;
 const MONGODB_URI = 'mongodb://127.0.0.1:27017';
 
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static(__dirname + '/public'));
 
 // Session middleware setup
@@ -45,6 +46,10 @@ async function checkCredentials(email, password) {
 
 // New route to get user data
 app.get('/get-user', async (req, res) => {
+  if (!req.session.userEmail) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
   const client = new MongoClient(MONGODB_URI);
 
   try {
@@ -66,13 +71,11 @@ app.get('/get-user', async (req, res) => {
 });
 
 app.post('/login', async (req, res) => {
-  const { email, password } = req.body;
-
   try {
+    const { email, password } = req.body;
     const isValidCredentials = await checkCredentials(email, password);
 
     if (isValidCredentials) {
-      // Set the user's email in the session (assuming you are using sessions)
       req.session.userEmail = email;
       res.send(generatePopupScript('Login successful', '/'));
     } else {
@@ -85,21 +88,20 @@ app.post('/login', async (req, res) => {
 });
 
 app.post('/register', async (req, res) => {
-  const { firstname, lastname, email, password, confirmPassword, city, age, phoneNum, emergencyNum } = req.body;
-
-  const client = new MongoClient(MONGODB_URI);
+  let client; // Define the client variable
 
   try {
+    const { firstname, lastname, email, password, confirmPassword, city, age, phoneNum, emergencyNum } = req.body;
+    client = new MongoClient(MONGODB_URI);
+
     await client.connect();
     const database = client.db('register');
     const collection = database.collection('user');
-
     const existingUser = await collection.findOne({ email });
 
     if (existingUser) {
       res.send(generatePopupScript('Email already registered', '/'));
     } else {
-      // Include the new fields in the document to be inserted
       await collection.insertOne({ firstname, lastname, email, password, city, age, phoneNum, emergencyNum });
       res.send(generatePopupScript('Registration successful', '/'));
     }
@@ -107,7 +109,9 @@ app.post('/register', async (req, res) => {
     console.error('Error during registration:', error);
     res.send(generatePopupScript('Error during registration. Please try again.'));
   } finally {
-    await client.close();
+    if (client) {
+      await client.close();
+    }
   }
 });
 
