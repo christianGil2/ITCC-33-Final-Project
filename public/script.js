@@ -26,7 +26,9 @@ document.addEventListener("DOMContentLoaded", async function () {
         const message = 'Login successful';
         const redirectUrl = '/index2.html';
         showAlert(message, redirectUrl);
-        updateProfileInfo(); // Update profile information after login
+
+        // Add a delay or use await before calling updateProfileInfo
+        setTimeout(updateProfileInfo, 500); // Adjust the delay as needed
       } else {
         const message = 'Invalid credentials';
         showAlert(message);
@@ -60,7 +62,9 @@ document.addEventListener("DOMContentLoaded", async function () {
         const message = 'Registration successful. Click OK to proceed to login.';
         const redirectUrl = '/';
         showAlert(message, redirectUrl);
-        updateProfileInfo(); // Update profile information after registration
+
+        // Add a delay or use await before calling updateProfileInfo
+        setTimeout(updateProfileInfo, 500); // Adjust the delay as needed
       } else {
         showAlert(data);
       }
@@ -80,17 +84,16 @@ document.addEventListener("DOMContentLoaded", async function () {
     try {
       const response = await fetch('/get-user');
       const userData = await response.json();
-
-      // Update profile information on the page
-      document.querySelector('input[name="firstname"]').value = userData.firstname;
-      document.querySelector('input[name="lastname"]').value = userData.lastname;
-      document.querySelector('input[name="email"]').value = userData.email;
-      document.querySelector('input[name="city"]').value = userData.city;
-      document.querySelector('input[name="phoneNum"]').value = userData.phoneNum;
+  
+      console.log('User data:', userData);
+  
+      // Update profile information in the profile form
+      document.getElementById('name').innerText = `${userData.firstname} ${userData.lastname}`;
+      document.getElementById('email').innerText = `Email: ${userData.email}`;
+      document.getElementById('city').innerText = `City: ${userData.city}`;
+      document.getElementById('contactInfo').innerText = `Contact Information: ${userData.phoneNum}`;
     } catch (error) {
       console.error('Error fetching user data:', error);
     }
   }
-
-  updateProfileInfo(); // Initial update of profile information
 });

@@ -18,10 +18,6 @@ app.use(session({
   saveUninitialized: true,
 }));
 
-app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/Loginform.html');
-});
-
 // Define a function to generate the script for the pop-up
 function generatePopupScript(message, redirectUrl) {
   return `<script>alert("${message}. Click OK to proceed."); window.location.href="${redirectUrl}";</script>`;
@@ -59,7 +55,12 @@ app.get('/get-user', async (req, res) => {
 
     const userEmail = req.session.userEmail;
 
+    // Corrected query field from 'email' to 'email'
     const user = await collection.findOne({ email: userEmail });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
 
     res.json(user);
   } catch (error) {
