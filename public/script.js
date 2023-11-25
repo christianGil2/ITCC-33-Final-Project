@@ -80,20 +80,4 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
   }
 
-  async function updateProfileInfo() {
-    try {
-      const response = await fetch('/get-user');
-      const userData = await response.json();
-  
-      console.log('User data:', userData);
-  
-      // Update profile information in the profile form
-      document.getElementById('name').innerText = `${userData.firstname} ${userData.lastname}`;
-      document.getElementById('email').innerText = `Email: ${userData.email}`;
-      document.getElementById('city').innerText = `City: ${userData.city}`;
-      document.getElementById('contactInfo').innerText = `Contact Information: ${userData.phoneNum}`;
-    } catch (error) {
-      console.error('Error fetching user data:', error);
-    }
-  }
 });
