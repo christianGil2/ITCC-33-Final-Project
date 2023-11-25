@@ -85,7 +85,7 @@ app.post('/login', async (req, res) => {
 });
 
 app.post('/register', async (req, res) => {
-  const { firstname, lastname, email, password, confirmPassword } = req.body;
+  const { firstname, lastname, email, password, confirmPassword, city, age, phoneNum, emergencyNum } = req.body;
 
   const client = new MongoClient(MONGODB_URI);
 
@@ -99,7 +99,8 @@ app.post('/register', async (req, res) => {
     if (existingUser) {
       res.send(generatePopupScript('Email already registered', '/'));
     } else {
-      await collection.insertOne({ firstname, lastname, email, password });
+      // Include the new fields in the document to be inserted
+      await collection.insertOne({ firstname, lastname, email, password, city, age, phoneNum, emergencyNum });
       res.send(generatePopupScript('Registration successful', '/'));
     }
   } catch (error) {
