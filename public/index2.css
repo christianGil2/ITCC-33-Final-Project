@@ -3,7 +3,7 @@ body {
   background-position: center;
   background-repeat: no-repeat;
   background-attachment: fixed;
-  animation: backgroundAnimation 12s infinite;
+  animation: backgroundAnimation 15s infinite;
   height: 65vh; /* Set a fixed height for the body, 100vh means 100% of the viewport height */
   margin: 0; /* Remove default body margin */
 }
