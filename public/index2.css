@@ -102,7 +102,7 @@ body {
 .dropdown-content {
   display: none;
   position: absolute;
-  background: rgba(255, 255, 255, 0.36);
+  background: rgba(32, 30, 30, 0.36);
   box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
   z-index: 1;
 }
