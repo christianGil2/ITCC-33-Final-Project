@@ -80,37 +80,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
   }
 
-  document.getElementById("payNow").addEventListener("click", async function () {
-    try {
-      // Get selected values from dropdowns
-      const destination = document.getElementById("destination").value;
-      const sailingDate = document.getElementById("sailingDate").value;
-      const cruise = document.getElementById("cruise").value;
-      const port = document.getElementById("port").value;
-      const amount = document.getElementById("amount").innerText;
-
-      // Make a POST request to the /pay-now endpoint
-      const response = await fetch('/pay-now', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ destination, sailingDate, cruise, port, amount }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        alert(data.message);
-      } else {
-        alert('Error processing payment. Please try again.');
-      }
-    } catch (error) {
-      console.error('Error during payment:', error);
-      alert('Error processing payment. Please try again.');
-    }
-  });
-
   function showAlert(message, redirectUrl) {
     alert(`${message}. Click OK to proceed.`);
     if (redirectUrl) {
