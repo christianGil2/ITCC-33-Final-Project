@@ -19,13 +19,24 @@ app.use(session({
   saveUninitialized: true,
 }));
 
+// MongoDB client for connection pooling
+const client = new MongoClient(MONGODB_URI);
+
+// Middleware to close the MongoDB client after the response is sent
+app.use((req, res, next) => {
+  // Close the MongoDB client after the response is sent
+  res.on('finish', () => {
+    client.close();
+  });
+  next();
+});
+
 // Define a function to generate the script for the pop-up
 function generatePopupScript(message, redirectUrl) {
   return `<script>alert("${message}. Click OK to proceed."); window.location.href="${redirectUrl}";</script>`;
 }
 
 async function checkCredentials(email, password) {
-  const client = new MongoClient(MONGODB_URI);
 
   try {
     await client.connect();
@@ -42,21 +53,17 @@ async function checkCredentials(email, password) {
 }
 
 // New route to get user data
-app.get('/get-user', async (req, res) => {
-  if (!req.session.userEmail) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-
-  const client = new MongoClient(MONGODB_URI);
-
+app.get('/get-user', async (req, res, next) => {
   try {
+    if (!req.session.userEmail) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
     await client.connect();
     const database = client.db('register');
     const collection = database.collection('user');
 
     const userEmail = req.session.userEmail;
-
-    // Corrected query field from 'email' to 'email'
     const user = await collection.findOne({ email: userEmail });
 
     if (!user) {
@@ -65,11 +72,9 @@ app.get('/get-user', async (req, res) => {
 
     res.json(user);
   } catch (error) {
-    console.error('Error fetching user data:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  } finally {
-    await client.close();
+    next(error);
   }
+  
 });
 
 app.post('/login', async (req, res) => {
@@ -139,6 +144,54 @@ app.post('/reserve-ticket', async (req, res) => {
   }
 });
 
+app.post('/update-profile', async (req, res, next) => {
+  try {
+    if (!req.session.userEmail) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    await client.connect();
+    const database = client.db('register');
+    const userCollection = database.collection('user');
+    const userEmail = req.session.userEmail;
+
+    const user = await userCollection.findOne({ email: userEmail });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const { city, phoneNum } = req.body;
+
+    console.log('Update Profile Data:', { city, phoneNum });
+
+    // Update user profile information
+    const updateResult = await userCollection.updateOne(
+      { email: userEmail },
+      { $set: { city, phoneNum } }
+    );
+
+    console.log('Update Result:', updateResult);
+
+    if (updateResult.modifiedCount === 1) {
+      // Retrieve the updated user information
+      const updatedUser = await userCollection.findOne({ email: userEmail });
+
+      console.log('Updated User Information:', updatedUser);
+
+      // Send the updated user information as the response
+      return res.json({ success: true, message: 'Profile updated successfully', updatedUser });
+    } else {
+      return res.status(500).json({ success: false, error: 'Error updating profile' });
+    }
+  } catch (error) {
+    next(error);
+  } finally {
+    // Close the MongoDB client after the response is sent
+    await client.close();
+  }
+});
+
 app.post('/pay-now', async (req, res) => {
   try {
     // Ensure the user is logged in
@@ -189,6 +242,75 @@ app.post('/pay-now', async (req, res) => {
   } finally {
     await client.close();
   }
+});
+
+app.post('/revoke-ticket', async (req, res) => {
+  try {
+    // Ensure the user is logged in
+    if (!req.session.userEmail) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    // Get user data from the "register" collection
+    const client = new MongoClient(MONGODB_URI);
+    await client.connect();
+
+    const database = client.db('register');
+    const userCollection = database.collection('user');
+    const ticketCollection = database.collection('ticket');
+    const revokedCollection = database.collection('revoked'); // New collection for revoked tickets
+    const userEmail = req.session.userEmail;
+
+    const user = await userCollection.findOne({ email: userEmail });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Find the latest ticket for the user that is not revoked
+    const latestTicket = await ticketCollection.findOne(
+      { userId: user._id, revoked: false },
+      { sort: { timestamp: -1 } }
+    );
+
+    if (!latestTicket) {
+      return res.status(404).json({ error: 'Ticket not found' });
+    }
+
+    // Update the ticket to mark it as revoked
+    const { reason } = req.body;
+    const result = await ticketCollection.updateOne(
+      { _id: latestTicket._id },
+      { $set: { revoked: true, revokeReason: reason } }
+    );
+
+    if (result.modifiedCount === 1) {
+      // Store user information and reason for revoking in the "revoked" collection
+      await revokedCollection.insertOne({
+        firstname: user.firstname,
+        lastname: user.lastname,
+        email: user.email,
+        phoneNum: user.phoneNum,
+        city: user.city,
+        reasonOfRevokedTicket: reason,
+      });
+
+      res.json({ message: 'Ticket revoked successfully' });
+    } else {
+      res.status(500).json({ error: 'Error revoking ticket' });
+    }
+  } catch (error) {
+    console.error('Error revoking ticket:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  } finally {
+    await client.close();
+  }
+});
+
+// Centralized error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(500).json({ error: 'Internal Server Error' });
 });
 
 app.listen(PORT, () => {
