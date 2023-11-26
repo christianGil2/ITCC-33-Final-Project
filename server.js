@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const { MongoClient } = require('mongodb');
 const session = require('express-session');
 const { ObjectID } = require('mongodb');
+const bcrypt = require('bcrypt');
 
 const app = express();
 const PORT = 3000;
@@ -34,6 +35,22 @@ app.use((req, res, next) => {
 // Define a function to generate the script for the pop-up
 function generatePopupScript(message, redirectUrl) {
   return `<script>alert("${message}. Click OK to proceed."); window.location.href="${redirectUrl}";</script>`;
+}
+
+// Define a function to check user authorization
+async function checkAuthorization(userEmail) {
+  try {
+    await client.connect();
+    const database = client.db('register');
+    const collection = database.collection('user');
+
+    // Check if the user is authorized based on their email
+    const user = await collection.findOne({ email: userEmail });
+
+    return !!user; // Return true if the user is found, false otherwise
+  } finally {
+    await client.close();
+  }
 }
 
 async function checkCredentials(email, password) {
@@ -109,6 +126,9 @@ app.post('/register', async (req, res) => {
     if (existingUser) {
       res.send(generatePopupScript('Email already registered', '/'));
     } else {
+      // Hash the password before storing it
+      const hashedPassword = await bcrypt.hash(password, 10);
+
       await collection.insertOne({ firstname, lastname, email, password, city, age, phoneNum, emergencyNum });
       res.send(generatePopupScript('Registration successful', '/'));
     }
@@ -194,8 +214,10 @@ app.post('/update-profile', async (req, res, next) => {
 
 app.post('/pay-now', async (req, res) => {
   try {
-    // Ensure the user is logged in
-    if (!req.session.userEmail) {
+    // Check if the user is authorized to make the payment
+    const authorized = await checkAuthorization(req.session.userEmail);
+
+    if (!authorized) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
@@ -205,6 +227,7 @@ app.post('/pay-now', async (req, res) => {
 
     const database = client.db('register');
     const userCollection = database.collection('user');
+    const ticketCollection = database.collection('ticket');
     const userEmail = req.session.userEmail;
 
     const user = await userCollection.findOne({ email: userEmail });
@@ -213,12 +236,26 @@ app.post('/pay-now', async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
+    // Prompt for password
+    const providedPassword = req.body.password; // Assuming the client sends the password in the request
+
+    // Verify the provided password
+    const isPasswordValid = await bcrypt.compare(providedPassword, user.password);
+
+    if (!isPasswordValid) {
+      return res.status(401).json({ error: 'Invalid password' });
+    }
+
     // Extract data from the request body
     const { destination, sailingDate, cruise, port, amount } = req.body;
 
-    // Create a new ticket document
+    // Create a new ticket document with user information
     const ticket = {
       userId: user._id, // Reference to the user
+      firstname: user.firstname,
+      lastname: user.lastname,
+      email: user.email,
+      phoneNum: user.phoneNum,
       destination,
       sailingDate,
       cruise,
@@ -228,10 +265,20 @@ app.post('/pay-now', async (req, res) => {
     };
 
     // Store the ticket in the "ticket" collection
-    const ticketCollection = database.collection('ticket');
     const result = await ticketCollection.insertOne(ticket);
 
     if (result.insertedCount === 1) {
+      // Optionally, you can update the user document with payment-related information
+      const updateResult = await userCollection.updateOne(
+        { email: userEmail },
+        { $set: { lastPayment: new Date(), totalPayments: (user.totalPayments || 0) + 1 } }
+      );
+
+      if (updateResult.modifiedCount !== 1) {
+        console.error('Error updating user with payment information');
+      }
+
+      // Send a success response
       res.json({ message: 'Payment successful. Ticket details stored.' });
     } else {
       res.status(500).json({ error: 'Error storing ticket details' });
@@ -240,7 +287,10 @@ app.post('/pay-now', async (req, res) => {
     console.error('Error during payment:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   } finally {
-    await client.close();
+    // Close the MongoDB client after the response is sent
+    if (client) {
+      await client.close();
+    }
   }
 });
 

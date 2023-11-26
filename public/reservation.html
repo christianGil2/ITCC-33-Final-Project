@@ -21,17 +21,17 @@
       </header>
 
     <div class="reservation-form">
-        <h2>Your Balance: 5000 pesos</h2>
+        <h2>Your Balance: 5000<span id="balance"> pesos</span></h2>
 
         <label for="destination">Destination:</label>
         <div class="select1">
             <select id="destination" name="destinations">
                 <option value="" disabled selected>Destinations</option>
-                <option value="siargao">Siargao Island</option>
-                <option value="camiguin">Camiguin</option>
-                <option value="ozamis">Ozamis</option>
-                <option value="boracay">Boracay</option>
-                <option value="zamboanga">Zamboanga</option>
+                <option value="Siargao Island">Siargao Island</option>
+                <option value="Camiguin">Camiguin</option>
+                <option value="Ozamis">Ozamis</option>
+                <option value="Boracay">Boracay</option>
+                <option value="Zamboanga">Zamboanga</option>
             </select>
             <div class="select1_arrow"></div>
         </div>
@@ -53,11 +53,11 @@
         <div class="select3">
             <select id="cruise" name="cruiseLines">
                 <option value="" disabled selected>All Cruise</option>
-                <option value="2go">2GO</option>
-                <option value="unitedPhilippines">United Philippines Lines Inc</option>
-                <option value="osmMaritime">OSM Maritime Services Inc</option>
-                <option value="ssmMaritime">SSM Maritime Services Inc</option>
-                <option value="singaShip">Singa Ship Management Phils Inc</option>
+                <option value="2GO">2GO</option>
+                <option value="United Philippines Lines Inc">United Philippines Lines Inc</option>
+                <option value="OSM Maritime Services Inc">OSM Maritime Services Inc</option>
+                <option value="SSM Maritime Services Inc">SSM Maritime Services Inc</option>
+                <option value="Singa Ship Management Phils Inc">Singa Ship Management Phils Inc</option>
             </select>
             <div class="select3_arrow"></div>
         </div>
@@ -66,11 +66,11 @@
         <div class="select4">
             <select id="port" name="port">
                 <option value="" disabled selected>Port</option>
-                <option value="balingoan">Balingoan</option>
-                <option value="cagayanDeOro">Cagayan de Oro</option>
-                <option value="butuan">Butuan</option>
-                <option value="dapitan">Dapitan</option>
-                <option value="dipolog">Dipolog</option>
+                <option value="Balingoan">Balingoan</option>
+                <option value="Cagayan de Oro">Cagayan de Oro</option>
+                <option value="Butuan">Butuan</option>
+                <option value="Dapitan">Dapitan</option>
+                <option value="Dipolog">Dipolog</option>
             </select>
             <div class="select4_arrow"></div>
         </div>
@@ -78,7 +78,7 @@
         <label for="amount">Amount:</label>
         <div id="amount">800 pesos</div>
 
-        <button class ="reservationButton" id="payNow" onclick="payNow()">Pay Now</button>
+        <button class="reservationButton" id="payNow">Pay Now</button>
 
         <!-- Ticket display -->
         <div id="ticket" class="hidden">
@@ -94,7 +94,80 @@
     <footer>
         <hr />
         <p>&copy; Beyond The Sea, All rights reserved.</p>
-      </footer>
-    <script src="script.js"></script>
+    </footer>
+    <script>
+        async function payNow() {
+            try {
+              // Prompt the user for their password
+              const password = prompt("Please enter your password to confirm the reservation:");
+        
+              // Check if the user entered a password
+              if (password === null) {
+                // User clicked cancel, do nothing
+                return;
+              }
+        
+              // Get selected values from dropdowns
+              const destination = document.getElementById("destination").value;
+              const sailingDate = document.getElementById("sailingDate").value;
+              const cruise = document.getElementById("cruise").value;
+              const port = document.getElementById("port").value;
+              const amount = document.getElementById("amount").innerText;
+        
+              // Check if any of the options are still in the "disabled selected" state
+              if (destination === "" || sailingDate === "" || cruise === "" || port === "") {
+                alert("Please select values for all options.");
+                return;
+              }
+        
+              // Make a POST request to the /pay-now endpoint with user password
+              const response = await fetch('/pay-now', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ destination, sailingDate, cruise, port, amount, password }),
+              });
+        
+              const data = await response.json();
+        
+              if (response.ok) {
+                // Update the balance
+                updateBalance(-parseInt(amount));
+        
+                // Display ticket details
+                displayTicketDetails(data.ticketDetails);
+        
+                alert(data.message);
+              } else {
+                alert('Error processing payment. Please try again.');
+              }
+            } catch (error) {
+              console.error('Error during payment:', error);
+              alert('Error processing payment. Please try again.');
+            }
+          }
+        
+          function displayTicketDetails(ticketDetails) {
+            const ticketElement = document.getElementById("ticket");
+            const ticketDestination = document.getElementById("ticketDestination");
+            const ticketSailingDate = document.getElementById("ticketSailingDate");
+            const ticketCruise = document.getElementById("ticketCruise");
+            const ticketPort = document.getElementById("ticketPort");
+            const ticketDepartureDate = document.getElementById("ticketDepartureDate");
+            const ticketSeatNumber = document.getElementById("ticketSeatNumber");
+        
+            // Update ticket details
+            ticketDestination.innerText = ticketDetails.destination;
+            ticketSailingDate.innerText = ticketDetails.sailingDate;
+            ticketCruise.innerText = ticketDetails.cruise;
+            ticketPort.innerText = ticketDetails.port;
+            ticketDepartureDate.innerText = ticketDetails.departureDate;
+            ticketSeatNumber.innerText = ticketDetails.seatNumber;
+        
+            // Show the ticket element
+            ticketElement.classList.remove("hidden");
+          }
+    </script>
 </body>
 </html>
