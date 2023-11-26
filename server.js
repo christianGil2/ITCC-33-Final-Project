@@ -54,16 +54,22 @@ async function checkAuthorization(userEmail) {
 }
 
 async function checkCredentials(email, password) {
-
   try {
+    const client = new MongoClient(MONGODB_URI);
     await client.connect();
+
     const database = client.db('register');
     const collection = database.collection('user');
 
-    // Check user credentials in the MongoDB collection
-    const user = await collection.findOne({ email, password });
+    const user = await collection.findOne({ email });
 
-    return !!user; // Return true if the user is found, false otherwise
+    if (!user) {
+      return false; // User not found
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    return isPasswordValid;
   } finally {
     await client.close();
   }
@@ -97,17 +103,18 @@ app.get('/get-user', async (req, res, next) => {
 app.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
+    
     const isValidCredentials = await checkCredentials(email, password);
 
     if (isValidCredentials) {
       req.session.userEmail = email;
-      res.send(generatePopupScript('Login successful', '/'));
+      res.json({ success: true, message: 'Login successful' });
     } else {
-      res.send(generatePopupScript('Invalid credentials'));
+      res.status(401).json({ success: false, error: 'Invalid credentials' });
     }
   } catch (error) {
-    console.error('Error checking credentials:', error);
-    res.send(generatePopupScript('Error during login. Please try again.'));
+    console.error('Error during login:', error);
+    res.status(500).json({ success: false, error: 'Error during login. Please try again.' });
   }
 });
 
@@ -238,6 +245,10 @@ app.post('/pay-now', async (req, res) => {
 
     // Prompt for password
     const providedPassword = req.body.password; // Assuming the client sends the password in the request
+
+    // Log the provided and stored passwords for debugging
+    console.log('Provided Password:', providedPassword);
+    console.log('Stored Hashed Password:', user.password);
 
     // Verify the provided password
     const isPasswordValid = await bcrypt.compare(providedPassword, user.password);

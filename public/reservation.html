@@ -90,6 +90,7 @@
             <p>Departure Schedule: <span id="ticketDepartureDate"></span></p>
             <p>Seat Number: <span id="ticketSeatNumber"></span></p>
         </div>
+        
     </div>
     <footer>
         <hr />
@@ -98,57 +99,72 @@
     <script>
         async function payNow() {
             try {
-              // Prompt the user for their password
-              const password = prompt("Please enter your password to confirm the reservation:");
+                // Use a more secure way to get the user's password, for example, an input field in a form
+                const password = document.getElementById("passwordInput").value;
         
-              // Check if the user entered a password
-              if (password === null) {
-                // User clicked cancel, do nothing
-                return;
-              }
+                // Validate password input
+                if (!password) {
+                    alert("Please enter your password.");
+                    return;
+                }
         
-              // Get selected values from dropdowns
-              const destination = document.getElementById("destination").value;
-              const sailingDate = document.getElementById("sailingDate").value;
-              const cruise = document.getElementById("cruise").value;
-              const port = document.getElementById("port").value;
-              const amount = document.getElementById("amount").innerText;
+                // Get selected values from dropdowns
+                const destination = document.getElementById("destination").value;
+                const sailingDate = document.getElementById("sailingDate").value;
+                const cruise = document.getElementById("cruise").value;
+                const port = document.getElementById("port").value;
+                const amount = document.getElementById("amount").innerText;
         
-              // Check if any of the options are still in the "disabled selected" state
-              if (destination === "" || sailingDate === "" || cruise === "" || port === "") {
-                alert("Please select values for all options.");
-                return;
-              }
+                // Check if any of the options are still in the "disabled selected" state
+                if (destination === "" || sailingDate === "" || cruise === "" || port === "") {
+                    alert("Please select values for all options.");
+                    return;
+                }
         
-              // Make a POST request to the /pay-now endpoint with user password
-              const response = await fetch('/pay-now', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ destination, sailingDate, cruise, port, amount, password }),
-              });
+                // Make a POST request to the /pay-now endpoint with user password
+                const response = await fetch('/pay-now', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ destination, sailingDate, cruise, port, amount, password }),
+                });
         
-              const data = await response.json();
+                const data = await response.json();
         
-              if (response.ok) {
-                // Update the balance
-                updateBalance(-parseInt(amount));
+                if (response.ok) {
+                    // Update the balance on the server and retrieve the updated balance
+                    const updatedBalance = await fetchUpdatedBalance();
         
-                // Display ticket details
-                displayTicketDetails(data.ticketDetails);
+                    // Display ticket details
+                    displayTicketDetails(data, updatedBalance);
         
-                alert(data.message);
-              } else {
-                alert('Error processing payment. Please try again.');
-              }
+                    alert(data.message);
+                } else {
+                    alert('Error processing payment. Please try again.');
+                }
             } catch (error) {
-              console.error('Error during payment:', error);
-              alert('Error processing payment. Please try again.');
+                console.error('Error during payment:', error);
+                alert('Error processing payment. Please try again.');
             }
-          }
+        }
         
-          function displayTicketDetails(ticketDetails) {
+        async function fetchUpdatedBalance() {
+            // Make a request to the server to fetch the updated balance
+            const response = await fetch('/get-updated-balance');
+            const data = await response.json();
+        
+            if (response.ok) {
+                return data.updatedBalance;
+            } else {
+                console.error('Error fetching updated balance:', data.error);
+                return null;
+            }
+        }
+        
+        document.getElementById("payNow").addEventListener("click", payNow);
+        
+        function displayTicketDetails(ticketDetails, updatedBalance) {
             const ticketElement = document.getElementById("ticket");
             const ticketDestination = document.getElementById("ticketDestination");
             const ticketSailingDate = document.getElementById("ticketSailingDate");
@@ -156,6 +172,7 @@
             const ticketPort = document.getElementById("ticketPort");
             const ticketDepartureDate = document.getElementById("ticketDepartureDate");
             const ticketSeatNumber = document.getElementById("ticketSeatNumber");
+            const balanceElement = document.getElementById("balance");
         
             // Update ticket details
             ticketDestination.innerText = ticketDetails.destination;
@@ -165,9 +182,14 @@
             ticketDepartureDate.innerText = ticketDetails.departureDate;
             ticketSeatNumber.innerText = ticketDetails.seatNumber;
         
+            // Update the displayed balance
+            if (updatedBalance !== null) {
+                balanceElement.innerText = `${updatedBalance} pesos`;
+            }
+        
             // Show the ticket element
             ticketElement.classList.remove("hidden");
-          }
+        }
     </script>
 </body>
 </html>
