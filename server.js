@@ -1,8 +1,7 @@
 const express = require('express');
-const bodyParser = require('body-parser');
 const { MongoClient } = require('mongodb');
 const session = require('express-session');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 
 const app = express();
 const PORT = 3000;
@@ -14,7 +13,7 @@ app.use(express.static(__dirname + '/public'));
 
 // Session middleware setup
 app.use(session({
-  secret: 'your-secret-key',
+  secret: 'your-strong-unique-secret',
   resave: false,
   saveUninitialized: true,
 }));
@@ -22,13 +21,29 @@ app.use(session({
 // MongoDB client for connection pooling
 const client = new MongoClient(MONGODB_URI);
 
-// Middleware to close the MongoDB client after the response is sent
-app.use((req, res, next) => {
-  // Close the MongoDB client after the response is sent
-  res.on('finish', () => {
-    client.close();
-  });
-  next();
+// Define the ticketsCollection
+const ticketsCollection = client.db('register').collection('ticket');
+
+app.use((err, req, res, next) => {
+  console.error('Error:', err);
+  res.status(500).json({ error: 'Internal Server Error' });
+});
+
+
+app.use(async (req, res, next) => {
+  try {
+    await client.connect();
+    res.on('finish', async () => {
+      try {
+        await client.close();
+      } catch (error) {
+        console.error('Error closing MongoDB client:', error);
+      }
+    });
+    next();
+  } catch (error) {
+    next(error);
+  }
 });
 
 // Define a function to generate the script for the pop-up
@@ -84,21 +99,6 @@ async function checkCredentials(email, password) {
     const database = client.db('register');
     const collection = database.collection('user');
 
-    // Since passwords are stored in plain text, compare directly
-    const user = await collection.findOne({ email, password });
-
-    return !!user;
-  } finally {
-    await client.close();
-  }
-}
-
-async function checkCredentials(email, password) {
-  try {
-    await client.connect();
-    const database = client.db('register');
-    const collection = database.collection('user');
-
     const user = await collection.findOne({ email, password });
 
     return !!user;
@@ -135,60 +135,13 @@ app.post('/register', async (req, res) => {
   }
 });
 
-// New function to get user data
+// function to get user data
 async function getUserData(email) {
   await client.connect();
   const database = client.db('register');
   const collection = database.collection('user');
   return await collection.findOne({ email });
 }
-
-// New function to deduct amount from user balance
-async function deductAmountFromBalance(amount, userId) {
-  const userCollection = client.db('register').collection('user');
-  const result = await userCollection.updateOne(
-    { _id: new ObjectID(userId), balance: { $gte: amount } },
-    { $inc: { balance: -amount } }
-  );
-  return result.modifiedCount === 1;
-}
-
-app.post('/reserve-ticket', async (req, res) => {
-  try {
-    const reservationData = req.body;
-    const reservationAmount = 800;
-
-    // Retrieve user data using the stored email in the session
-    const userEmail = req.session.userEmail;
-    const user = await getUserData(userEmail);
-
-    if (!user) {
-      return res.status(404).json({ success: false, message: 'User not found' });
-    }
-
-    // Deduct the amount from the user's balance
-    const isDeducted = await deductAmountFromBalance(reservationAmount, user._id);
-
-    if (!isDeducted) {
-      return res.status(500).json({ success: false, message: 'Error updating user balance' });
-    }
-
-    const database = client.db('register');
-    const collection = database.collection('ticket');
-    const result = await collection.insertOne({ ...reservationData, amount: reservationAmount });
-
-    if (result.insertedCount === 1) {
-      res.json({ success: true, message: 'Reservation successful' });
-    } else {
-      // Rollback the deducted amount if reservation insertion fails
-      await deductAmountFromBalance(-reservationAmount, user._id);
-      res.status(500).json({ success: false, message: 'Error during reservation. Please try again.' });
-    }
-  } catch (error) {
-    console.error('Error during reservation:', error);
-    res.status(500).json({ success: false, message: 'Error during reservation. Please try again.' });
-  }
-});
 
 app.post('/update-profile', async (req, res, next) => {
   try {
@@ -238,83 +191,83 @@ app.post('/update-profile', async (req, res, next) => {
   }
 });
 
-app.post('/pay-now', async (req, res) => {
+// Place this function definition somewhere in your server-side code
+function calculateDepartureDate(selectedSailingDate) {
+  const sailingDate = new Date(selectedSailingDate);
+  const departureDate = new Date(sailingDate);
+  departureDate.setDate(sailingDate.getDate() + 3);
+  return `${departureDate.getMonth() + 1}/${departureDate.getDate()}/${departureDate.getFullYear()}`;
+}
+
+function generateSeatNumber() {
+  // Logic to generate a random number between 1 and 5000
+  return Math.floor(1 + Math.random() * 3000);
+}
+
+async function storeTicket(ticket) {
   try {
-    // Get user data from the "register" collection
-    const client = new MongoClient(MONGODB_URI);
-    await client.connect();
+    const result = await ticketsCollection.insertOne(ticket);
 
-    const database = client.db('register');
-    const userCollection = database.collection('user');
-    const ticketCollection = database.collection('ticket');
-    const userEmail = req.session.userEmail;
-
-    const user = await userCollection.findOne({ email: userEmail });
-
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    // Prompt for password
-    const providedPassword = req.body.password; // Assuming the client sends the password in the request
-
-    // Log the provided and stored passwords for debugging
-    console.log('Provided Password:', providedPassword);
-    console.log('Stored Hashed Password:', user.password);
-
-    // Verify the provided password
-    const isPasswordValid = await bcrypt.compare(providedPassword, user.password);
-
-    if (!isPasswordValid) {
-      return res.status(401).json({ error: 'Invalid password' });
-    }
-
-    // Extract data from the request body
-    const { destination, sailingDate, cruise, port, amount } = req.body;
-
-    // Create a new ticket document with user information
-    const ticket = {
-      userId: user._id, // Reference to the user
-      firstname: user.firstname,
-      lastname: user.lastname,
-      email: user.email,
-      phoneNum: user.phoneNum,
-      destination,
-      sailingDate,
-      cruise,
-      port,
-      departureDate,
-      seatNumber,
-      timestamp: new Date(),
-    };
-
-    // Store the ticket in the "ticket" collection
-    const result = await ticketCollection.insertOne(ticket);
-
-    if (result.insertedCount === 1) {
-      // Optionally, you can update the user document with payment-related information
-      const updateResult = await userCollection.updateOne(
-        { email: userEmail },
-        { $set: { lastPayment: new Date(), totalPayments: (user.totalPayments || 0) + 1 } }
-      );
-
-      if (updateResult.modifiedCount !== 1) {
-        console.error('Error updating user with payment information');
-      }
-
-      // Send a success response
-      res.json({ message: 'Payment successful. Ticket details stored.' });
+    if (result && result.acknowledged && result.insertedId) {
+      console.log('Ticket stored successfully:', ticket);
+      return true; // Ticket insertion successful
     } else {
-      res.status(500).json({ error: 'Error storing ticket details' });
+      console.error('Error storing ticket details: Invalid result from MongoDB insertion');
+      return false; // Ticket insertion failed
     }
   } catch (error) {
-    console.error('Error during payment:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error('Error storing ticket details:', error);
+    return false; // Ticket insertion failed
+  }
+}
+
+app.post('/reserve-now', async (req, res) => {
+  const session = client.startSession();
+
+  try {
+    await session.withTransaction(async () => {
+      // Check if the user is authenticated
+      if (!req.session.userEmail) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const userEmail = req.session.userEmail;
+      const user = await getUserData(userEmail);
+
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      const { destination, sailingDate, cruise, port } = req.body;
+
+      const departureDate = calculateDepartureDate(sailingDate);
+      const seatNumber = generateSeatNumber();
+
+      const ticket = {
+        userId: user._id,
+        firstname: user.firstname,
+        lastname: user.lastname,
+        email: user.email,
+        phoneNum: user.phoneNum,
+        destination,
+        sailingDate,
+        cruise,
+        port,
+        departureDate,
+        seatNumber,
+        timestamp: new Date(),
+      };
+
+      // Use the storeTicket function to insert the ticket into the database
+      const result = await storeTicket(ticket);
+
+      res.json({ message: 'Reservation successful. Ticket details stored.', ticketDetails: ticket });
+    });
+  } catch (error) {
+    console.error('Error during reservation:', error);
+    res.status(500).json({ error: `Internal Server Error: ${error.message}` });
   } finally {
-    // Close the MongoDB client after the response is sent
-    if (client) {
-      await client.close();
-    }
+    session.endSession();
   }
 });
 
@@ -352,10 +305,10 @@ app.post('/revoke-ticket', async (req, res) => {
     }
 
     // Update the ticket to mark it as revoked
-    const { reason } = req.body;
-    const result = await ticketCollection.updateOne(
-      { _id: latestTicket._id },
-      { $set: { revoked: true, revokeReason: reason } }
+    const result = await ticketCollection.findOneAndUpdate(
+      { userId: user._id, revoked: false },
+      { $set: { revoked: true, revokeReason: reason } },
+      { sort: { timestamp: -1 } }
     );
 
     if (result.modifiedCount === 1) {
@@ -379,12 +332,6 @@ app.post('/revoke-ticket', async (req, res) => {
   } finally {
     await client.close();
   }
-});
-
-// Centralized error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err);
-  res.status(500).json({ error: 'Internal Server Error' });
 });
 
 app.listen(PORT, () => {
