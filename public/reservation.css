@@ -200,7 +200,7 @@ body {
 
 
 /* Apply styles to the Revoke Ticket button */
-#revokeTicket {
+#deleteTicket {
     appearance: none;
     background-color: transparent;
     border: 2px solid white;
@@ -221,7 +221,7 @@ body {
     transition: background-color 0.3s ease;
 }
 
-#revokeTicket:hover {
+#deleteTicket:hover {
     background-color: rgba(255, 255, 255, 0.2);
 }
 
