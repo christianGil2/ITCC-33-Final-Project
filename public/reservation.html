@@ -80,6 +80,7 @@
         <!-- Ticket display -->
         <div id="ticket" class="hidden">
             <h3>Ticket Details:</h3>
+            <p class="ticket-info" hidden id="ticketId">${ticketDetails._id}</p>
             <p class="ticket-info">Name: <span id="ticketName"></span></p>
             <p class="ticket-info">Email: <span id="ticketEmail"></span></p>
             <p class="ticket-info">Contact Information: <span id="ticketPhoneNum"></span></p>
@@ -90,19 +91,7 @@
             <p class="ticket-info">Departure Schedule: <span id="ticketDepartureDate"></span></p>
             <p class="ticket-info">Seat Number: <span id="ticketSeatNumber"></span></p>
 
-            <!-- Dropdown for revoking reason -->
-            <div id="revokeDropdown" class="hidden">
-              <label for="revokeReason">Select reason for revoking:</label>
-              <select id="revokeReason" name="revokeReason">
-                  <option value="Change of Plans">Change of Plans</option>
-                  <option value="Personal Emergency">Personal Emergency</option>
-                  <option value="Health Issues">Health Issues</option>
-                  <option value="Financial Constraints">Financial Constraints</option>
-                  <option value="Other" selected>Other</option>
-              </select>
-          </div>
-
-          <button class="revokeButton" id="revokeTicket">Revoke Ticket</button>
+          <button class="deleteButton" id="deleteTicket">Delete Ticket</button>
         </div>
         
     </div>
@@ -229,50 +218,35 @@
         // Call the displayTicketOnLoad function when the page loads
         window.addEventListener('load', displayTicketOnLoad);
 
-        // function to reservation-revoke
-        async function revokeTicket() {
+        async function deleteTicket(ticketsCollection, userEmail, ticketId) {
           try {
-            // Corrected the id to match the dropdown id
-            const reason = document.getElementById("revokeDropdown").value;
+            // Update this part to communicate with MongoDB and delete the ticket
 
-            if (!reason) {
-              alert('Please select a reason for revoking the ticket.');
-              return;
+            const deleteResult = await ticketsCollection.deleteOne({
+              email: userEmail,
+              revoked: false
+            });
+        
+            if (deleteResult.deletedCount !== 1) {
+              console.error('Error deleting ticket:', deleteResult);
+              return { success: false, error: 'Error deleting ticket' };
             }
-
-            // Confirm revocation with the user
-            const confirmRevocation = confirm('Are you sure you want to revoke your ticket? This action cannot be undone.');
-
-            if (confirmRevocation) {
-              // Hide the ticket display
-              document.getElementById("ticket").classList.add("hidden");
-
-              // Send revocation request to the server
-              const response = await fetch('/revoke-ticket', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ reason }),
-              });
-
-              const responseData = await response.json();
-
-              if (response.ok) {
-                alert(responseData.message);
-              } else {
-                console.error('Error revoking ticket:', responseData?.error || 'Unknown error');
-                alert('Error revoking ticket. Please try again.');
-              }
-            }
+        
+            return { success: true }; // Return success without updated ticket information
           } catch (error) {
-            console.error('Error revoking ticket:', error);
-            alert(`Internal Server Error: ${error.message}`);
+            console.error('Error deleting ticket:', error);
+            return { success: false, error: 'Internal Server Error' };
           }
-        }
-
-        // An event listener to the "Revoke Ticket" button
-        document.getElementById("revokeTicket").addEventListener("click", revokeTicket);
+        }        
+        
+        // An event listener to the "Delete Ticket" button
+        document.getElementById("deleteTicket").addEventListener("click", async () => {
+          const ticketIdElement = document.getElementById("ticketId");
+          const ticketId = ticketIdElement.innerText;
+          const userEmail = document.getElementById("ticketEmail").innerText;
+          const result = await deleteTicket(ticketsCollection, userEmail, ticketId);
+          // Handle the result as needed
+        });        
 
     </script>    
 </body>

@@ -211,7 +211,7 @@ function calculateDepartureDate(selectedSailingDate) {
 }
 
 function generateSeatNumber() {
-  // Logic to generate a random number between 1 and 5000
+  // Logic to generate a random number between 1 and 3000
   return Math.floor(1 + Math.random() * 3000);
 }
 
@@ -334,7 +334,8 @@ app.get('/get-ticket-details', async (req, res) => {
   }
 });
 
-app.post('/revoke-ticket', async (req, res) => {
+// Add a new route to handle ticket deletion
+app.post('/delete-ticket', async (req, res) => {
   try {
     // Ensure the user is logged in
     if (!req.session.userEmail) {
@@ -348,71 +349,38 @@ app.post('/revoke-ticket', async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Get the latest non-revoked ticket for the user
-    const latestTicket = await ticketsCollection.findOne(
-      { email: user.email, revoked: false },
-      { sort: { timestamp: -1 } }
-    );
+    const { ticketId } = req.body;
 
-    if (!latestTicket) {
-      return res.status(404).json({ error: 'Ticket not found' });
-    }
-
-    // Assume you have a reason parameter in the request body
-    const { reason } = req.body;
-
-    // Use the revokeTicket function to handle ticket revocation
-    const result = await revokeTicket(latestTicket._id, reason);
+    // Use the deleteTicket function to handle ticket deletion, passing ticketsCollection as a parameter
+    const result = await deleteTicket(ticketsCollection, user.email, ticketId);
 
     if (result.success) {
-      res.json({ message: 'Ticket revoked successfully' });
+      res.json({ message: 'Ticket deleted successfully' });
     } else {
-      res.status(500).json({ error: result.error || 'Error revoking ticket' });
+      res.status(500).json({ error: result.error || 'Error deleting ticket' });
     }
   } catch (error) {
-    console.error('Error revoking ticket:', error);
+    console.error('Error deleting ticket:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
-// function to revoke a ticket
-async function revokeTicket(email, reason) {
+async function deleteTicket(ticketsCollection, userEmail, ticketId) {
   try {
-    const latestTicket = await ticketsCollection.findOne(
-      { email, revoked: false },
-      { sort: { timestamp: -1 } }
-    );
+    // Update this part to communicate with MongoDB and delete the ticket
+    const deleteResult = await ticketsCollection.deleteOne({
+      email: userEmail,
+      _id: ObjectId(ticketId),
+    });
 
-    if (!latestTicket) {
-      return { success: false, error: 'Ticket not found' };
+    if (deleteResult.deletedCount !== 1) {
+      console.error('Error deleting ticket:', deleteResult);
+      return { success: false, error: 'Error deleting ticket' };
     }
 
-    // Fetch user details from the user collection
-    const user = await getUserData(latestTicket.email);
-
-    const result = await ticketsCollection.findOneAndUpdate(
-      { _id: latestTicket._id, revoked: false },
-      { $set: { revoked: true, revokeReason: reason } },
-      { returnDocument: 'after' } // Return the updated document
-    );
-
-    if (result.value) {
-      // Store user details and reason for revoking in the "revoked" collection
-      await revokedCollection.insertOne({
-        firstname: user.firstname,
-        lastname: user.lastname,
-        email: user.email,
-        phoneNum: user.phoneNum,
-        city: user.city,
-        reasonOfRevokedTicket: reason,
-      });
-
-      return { success: true };
-    } else {
-      return { success: false, error: 'Error revoking ticket' };
-    }
+    return { success: true }; // Return success without updated ticket information
   } catch (error) {
-    console.error('Error revoking ticket:', error);
+    console.error('Error deleting ticket:', error);
     return { success: false, error: 'Internal Server Error' };
   }
 }
