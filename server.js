@@ -24,11 +24,27 @@ const client = new MongoClient(MONGODB_URI);
 // Define the ticketsCollection
 const ticketsCollection = client.db('register').collection('ticket');
 
+// Define a function to generate the script for the pop-up
+function generatePopupScript(message, redirectUrl) {
+  return `<script>alert("${message}. Click OK to proceed."); window.location.href="${redirectUrl}";</script>`;
+}
+
+// Error handling middleware for specific errors
 app.use((err, req, res, next) => {
+  if (err.name === 'UnauthorizedError') {
+    // Handle unauthorized access
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  if (err.name === 'ValidationError') {
+    // Handle validation errors
+    return res.status(422).json({ error: err.message });
+  }
+
+  // Handle other errors
   console.error('Error:', err);
   res.status(500).json({ error: 'Internal Server Error' });
 });
-
 
 app.use(async (req, res, next) => {
   try {
@@ -45,11 +61,6 @@ app.use(async (req, res, next) => {
     next(error);
   }
 });
-
-// Define a function to generate the script for the pop-up
-function generatePopupScript(message, redirectUrl) {
-  return `<script>alert("${message}. Click OK to proceed."); window.location.href="${redirectUrl}";</script>`;
-}
 
 // New route to get user data
 app.get('/get-user', async (req, res, next) => {
@@ -238,11 +249,28 @@ app.post('/reserve-now', async (req, res) => {
         return res.status(404).json({ error: 'User not found' });
       }
 
+      // Check if the user already has an active ticket
+      const activeTicket = await ticketsCollection.findOne({
+        email: user.email,
+        revoked: false,
+      });
+
+      if (activeTicket) {
+        return res.status(400).json({ error: 'User already has an active ticket' });
+      }
+
       const { destination, sailingDate, cruise, port } = req.body;
 
+      // Additional validation for user input
+      if (!destination || !sailingDate || !cruise || !port) {
+        return res.status(400).json({ error: 'Incomplete reservation details' });
+      }
+
+      // Calculate departure date and generate seat number
       const departureDate = calculateDepartureDate(sailingDate);
       const seatNumber = generateSeatNumber();
 
+      // Create the ticket object
       const ticket = {
         userId: user._id,
         firstname: user.firstname,
@@ -261,13 +289,48 @@ app.post('/reserve-now', async (req, res) => {
       // Use the storeTicket function to insert the ticket into the database
       const result = await storeTicket(ticket);
 
-      res.json({ message: 'Reservation successful. Ticket details stored.', ticketDetails: ticket });
+      if (result) {
+        res.json({ message: 'Reservation successful. Ticket details stored.', ticketDetails: ticket });
+      } else {
+        res.status(500).json({ error: 'Error storing ticket details' });
+      }
     });
   } catch (error) {
     console.error('Error during reservation:', error);
     res.status(500).json({ error: `Internal Server Error: ${error.message}` });
   } finally {
     session.endSession();
+  }
+});
+
+app.get('/get-ticket-details', async (req, res) => {
+  try {
+    // Check if the user is authenticated
+    if (!req.session.userEmail) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const userEmail = req.session.userEmail;
+    const user = await getUserData(userEmail);
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Retrieve the user's latest ticket details
+    const latestTicket = await ticketsCollection.findOne(
+      { email: user.email },
+      { sort: { timestamp: -1 } }
+    );
+
+    if (!latestTicket) {
+      return res.status(404).json({ error: 'Ticket not found' });
+    }
+
+    res.json(latestTicket);
+  } catch (error) {
+    console.error('Error fetching ticket details:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
@@ -278,25 +341,16 @@ app.post('/revoke-ticket', async (req, res) => {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    // Get user data from the "register" collection
-    const client = new MongoClient(MONGODB_URI);
-    await client.connect();
-
-    const database = client.db('register');
-    const userCollection = database.collection('user');
-    const ticketCollection = database.collection('ticket');
-    const revokedCollection = database.collection('revoked'); // New collection for revoked tickets
     const userEmail = req.session.userEmail;
-
-    const user = await userCollection.findOne({ email: userEmail });
+    const user = await getUserData(userEmail);
 
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Find the latest ticket for the user that is not revoked
-    const latestTicket = await ticketCollection.findOne(
-      { userId: user._id, revoked: false },
+    // Get the latest non-revoked ticket for the user
+    const latestTicket = await ticketsCollection.findOne(
+      { email: user.email, revoked: false },
       { sort: { timestamp: -1 } }
     );
 
@@ -304,15 +358,46 @@ app.post('/revoke-ticket', async (req, res) => {
       return res.status(404).json({ error: 'Ticket not found' });
     }
 
-    // Update the ticket to mark it as revoked
-    const result = await ticketCollection.findOneAndUpdate(
-      { userId: user._id, revoked: false },
-      { $set: { revoked: true, revokeReason: reason } },
+    // Assume you have a reason parameter in the request body
+    const { reason } = req.body;
+
+    // Use the revokeTicket function to handle ticket revocation
+    const result = await revokeTicket(latestTicket._id, reason);
+
+    if (result.success) {
+      res.json({ message: 'Ticket revoked successfully' });
+    } else {
+      res.status(500).json({ error: result.error || 'Error revoking ticket' });
+    }
+  } catch (error) {
+    console.error('Error revoking ticket:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// function to revoke a ticket
+async function revokeTicket(email, reason) {
+  try {
+    const latestTicket = await ticketsCollection.findOne(
+      { email, revoked: false },
       { sort: { timestamp: -1 } }
     );
 
-    if (result.modifiedCount === 1) {
-      // Store user information and reason for revoking in the "revoked" collection
+    if (!latestTicket) {
+      return { success: false, error: 'Ticket not found' };
+    }
+
+    // Fetch user details from the user collection
+    const user = await getUserData(latestTicket.email);
+
+    const result = await ticketsCollection.findOneAndUpdate(
+      { _id: latestTicket._id, revoked: false },
+      { $set: { revoked: true, revokeReason: reason } },
+      { returnDocument: 'after' } // Return the updated document
+    );
+
+    if (result.value) {
+      // Store user details and reason for revoking in the "revoked" collection
       await revokedCollection.insertOne({
         firstname: user.firstname,
         lastname: user.lastname,
@@ -322,16 +407,19 @@ app.post('/revoke-ticket', async (req, res) => {
         reasonOfRevokedTicket: reason,
       });
 
-      res.json({ message: 'Ticket revoked successfully' });
+      return { success: true };
     } else {
-      res.status(500).json({ error: 'Error revoking ticket' });
+      return { success: false, error: 'Error revoking ticket' };
     }
   } catch (error) {
     console.error('Error revoking ticket:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  } finally {
-    await client.close();
+    return { success: false, error: 'Internal Server Error' };
   }
+}
+
+// Handle 404 errors for undefined routes
+app.use((req, res) => {
+  res.status(404).json({ error: 'Not Found' });
 });
 
 app.listen(PORT, () => {

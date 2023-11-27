@@ -22,6 +22,7 @@
 
     <div class="reservation-form">
 
+        <h3>Reservation Form:</h3>
         <label for="destination">Destination:</label>
         <div class="select1">
             <select id="destination" name="destinations">
@@ -79,17 +80,29 @@
         <!-- Ticket display -->
         <div id="ticket" class="hidden">
             <h3>Ticket Details:</h3>
-            <p>Name: <span id="ticketName"></span></p>
-            <p>Email: <span id="ticketEmail"></span></p>
-            <p>Contact Information: <span id="ticketPhoneNum"></span></p>
-            <p>Destination: <span id="ticketDestination"></span></p>
-            <p>Sailing Date: <span id="ticketSailingDate"></span></p>
-            <p>Cruise: <span id="ticketCruise"></span></p>
-            <p>Port: <span id="ticketPort"></span></p>
-            <p>Departure Schedule: <span id="ticketDepartureDate"></span></p>
-            <p>Seat Number: <span id="ticketSeatNumber"></span></p>
+            <p class="ticket-info">Name: <span id="ticketName"></span></p>
+            <p class="ticket-info">Email: <span id="ticketEmail"></span></p>
+            <p class="ticket-info">Contact Information: <span id="ticketPhoneNum"></span></p>
+            <p class="ticket-info">Destination: <span id="ticketDestination"></span></p>
+            <p class="ticket-info">Sailing Date: <span id="ticketSailingDate"></span></p>
+            <p class="ticket-info">Cruise: <span id="ticketCruise"></span></p>
+            <p class="ticket-info">Port: <span id="ticketPort"></span></p>
+            <p class="ticket-info">Departure Schedule: <span id="ticketDepartureDate"></span></p>
+            <p class="ticket-info">Seat Number: <span id="ticketSeatNumber"></span></p>
 
-            <button class="revokeButton" id="revokeTicket">Revoke Ticket</button>
+            <!-- Dropdown for revoking reason -->
+            <div id="revokeDropdown" class="hidden">
+              <label for="revokeReason">Select reason for revoking:</label>
+              <select id="revokeReason" name="revokeReason">
+                  <option value="Change of Plans">Change of Plans</option>
+                  <option value="Personal Emergency">Personal Emergency</option>
+                  <option value="Health Issues">Health Issues</option>
+                  <option value="Financial Constraints">Financial Constraints</option>
+                  <option value="Other" selected>Other</option>
+              </select>
+          </div>
+
+          <button class="revokeButton" id="revokeTicket">Revoke Ticket</button>
         </div>
         
     </div>
@@ -100,7 +113,6 @@
     <script>
         async function reserveNow() {
           try {
-            
             const destination = document.getElementById("destination").value;
             const sailingDate = document.getElementById("sailingDate").value;
             const cruise = document.getElementById("cruise").value;
@@ -110,6 +122,9 @@
               alert("Please select values for all options.");
               return;
             }
+
+            // Disable the button to prevent multiple submissions
+            document.getElementById("reserveNow").disabled = true;
         
             const response = await fetch('/reserve-now', {
               method: 'POST',
@@ -128,9 +143,11 @@
             } else if (responseData.error === 'User already has an active ticket') {
               // Display a custom alert for users with active tickets
               alert('You already have an active ticket. Please revoke it before making a new reservation.');
+              return;
             } else {
               console.error('Error during reservation:', responseData?.error || 'Unknown error');
               alert('Error processing reservation. Please try again.');
+              return;
             }
           } catch (error) {
             console.error('Error during reservation:', error);
@@ -188,6 +205,75 @@
             // Show the ticket element
             ticketElement.classList.remove("hidden");
         }
+
+        // Add this function to fetch and display ticket details on page load
+        async function displayTicketOnLoad() {
+          try {
+            // Fetch ticket details from the server
+            const response = await fetch('/get-ticket-details');
+            const ticketDetails = await response.json();
+
+            if (response.ok && ticketDetails) {
+              // Display ticket details on the page
+              displayTicketDetails(ticketDetails);
+            } else {
+              console.error('Error fetching ticket details:', ticketDetails?.error || 'Unknown error');
+              // Handle the error as needed
+            }
+          } catch (error) {
+            console.error('Error fetching ticket details:', error);
+            // Handle the error as needed
+          }
+        }
+
+        // Call the displayTicketOnLoad function when the page loads
+        window.addEventListener('load', displayTicketOnLoad);
+
+        // function to reservation-revoke
+        async function revokeTicket() {
+          try {
+            // Corrected the id to match the dropdown id
+            const reason = document.getElementById("revokeDropdown").value;
+
+            if (!reason) {
+              alert('Please select a reason for revoking the ticket.');
+              return;
+            }
+
+            // Confirm revocation with the user
+            const confirmRevocation = confirm('Are you sure you want to revoke your ticket? This action cannot be undone.');
+
+            if (confirmRevocation) {
+              // Hide the ticket display
+              document.getElementById("ticket").classList.add("hidden");
+
+              // Send revocation request to the server
+              const response = await fetch('/revoke-ticket', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ reason }),
+              });
+
+              const responseData = await response.json();
+
+              if (response.ok) {
+                alert(responseData.message);
+              } else {
+                console.error('Error revoking ticket:', responseData?.error || 'Unknown error');
+                alert('Error revoking ticket. Please try again.');
+              }
+            }
+          } catch (error) {
+            console.error('Error revoking ticket:', error);
+            alert(`Internal Server Error: ${error.message}`);
+          }
+        }
+
+        // An event listener to the "Revoke Ticket" button
+        document.getElementById("revokeTicket").addEventListener("click", revokeTicket);
+
     </script>    
 </body>
 </html>
