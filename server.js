@@ -3,7 +3,6 @@ const bodyParser = require('body-parser');
 const { MongoClient } = require('mongodb');
 const session = require('express-session');
 const { ObjectID } = require('mongodb');
-const bcrypt = require('bcrypt');
 
 const app = express();
 const PORT = 3000;
@@ -37,44 +36,6 @@ function generatePopupScript(message, redirectUrl) {
   return `<script>alert("${message}. Click OK to proceed."); window.location.href="${redirectUrl}";</script>`;
 }
 
-// Define a function to check user authorization
-async function checkAuthorization(userEmail) {
-  try {
-    await client.connect();
-    const database = client.db('register');
-    const collection = database.collection('user');
-
-    // Check if the user is authorized based on their email
-    const user = await collection.findOne({ email: userEmail });
-
-    return !!user; // Return true if the user is found, false otherwise
-  } finally {
-    await client.close();
-  }
-}
-
-async function checkCredentials(email, password) {
-  try {
-    const client = new MongoClient(MONGODB_URI);
-    await client.connect();
-
-    const database = client.db('register');
-    const collection = database.collection('user');
-
-    const user = await collection.findOne({ email });
-
-    if (!user) {
-      return false; // User not found
-    }
-
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-
-    return isPasswordValid;
-  } finally {
-    await client.close();
-  }
-}
-
 // New route to get user data
 app.get('/get-user', async (req, res, next) => {
   try {
@@ -103,7 +64,6 @@ app.get('/get-user', async (req, res, next) => {
 app.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    
     const isValidCredentials = await checkCredentials(email, password);
 
     if (isValidCredentials) {
@@ -118,8 +78,37 @@ app.post('/login', async (req, res) => {
   }
 });
 
+async function checkCredentials(email, password) {
+  try {
+    await client.connect();
+    const database = client.db('register');
+    const collection = database.collection('user');
+
+    // Since passwords are stored in plain text, compare directly
+    const user = await collection.findOne({ email, password });
+
+    return !!user;
+  } finally {
+    await client.close();
+  }
+}
+
+async function checkCredentials(email, password) {
+  try {
+    await client.connect();
+    const database = client.db('register');
+    const collection = database.collection('user');
+
+    const user = await collection.findOne({ email, password });
+
+    return !!user;
+  } finally {
+    await client.close();
+  }
+}
+
 app.post('/register', async (req, res) => {
-  let client; // Define the client variable
+  let client;
 
   try {
     const { firstname, lastname, email, password, confirmPassword, city, age, phoneNum, emergencyNum } = req.body;
@@ -133,9 +122,6 @@ app.post('/register', async (req, res) => {
     if (existingUser) {
       res.send(generatePopupScript('Email already registered', '/'));
     } else {
-      // Hash the password before storing it
-      const hashedPassword = await bcrypt.hash(password, 10);
-
       await collection.insertOne({ firstname, lastname, email, password, city, age, phoneNum, emergencyNum });
       res.send(generatePopupScript('Registration successful', '/'));
     }
@@ -149,25 +135,58 @@ app.post('/register', async (req, res) => {
   }
 });
 
+// New function to get user data
+async function getUserData(email) {
+  await client.connect();
+  const database = client.db('register');
+  const collection = database.collection('user');
+  return await collection.findOne({ email });
+}
+
+// New function to deduct amount from user balance
+async function deductAmountFromBalance(amount, userId) {
+  const userCollection = client.db('register').collection('user');
+  const result = await userCollection.updateOne(
+    { _id: new ObjectID(userId), balance: { $gte: amount } },
+    { $inc: { balance: -amount } }
+  );
+  return result.modifiedCount === 1;
+}
+
 app.post('/reserve-ticket', async (req, res) => {
   try {
     const reservationData = req.body;
+    const reservationAmount = 800;
 
-    const client = new MongoClient(MONGODB_URI);
-    await client.connect();
+    // Retrieve user data using the stored email in the session
+    const userEmail = req.session.userEmail;
+    const user = await getUserData(userEmail);
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    // Deduct the amount from the user's balance
+    const isDeducted = await deductAmountFromBalance(reservationAmount, user._id);
+
+    if (!isDeducted) {
+      return res.status(500).json({ success: false, message: 'Error updating user balance' });
+    }
 
     const database = client.db('register');
     const collection = database.collection('ticket');
+    const result = await collection.insertOne({ ...reservationData, amount: reservationAmount });
 
-    // Insert the reservation data into the "ticket" collection
-    await collection.insertOne(reservationData);
-
-    res.json({ success: true, message: 'Reservation successful' });
+    if (result.insertedCount === 1) {
+      res.json({ success: true, message: 'Reservation successful' });
+    } else {
+      // Rollback the deducted amount if reservation insertion fails
+      await deductAmountFromBalance(-reservationAmount, user._id);
+      res.status(500).json({ success: false, message: 'Error during reservation. Please try again.' });
+    }
   } catch (error) {
     console.error('Error during reservation:', error);
     res.status(500).json({ success: false, message: 'Error during reservation. Please try again.' });
-  } finally {
-    await client.close();
   }
 });
 
@@ -221,13 +240,6 @@ app.post('/update-profile', async (req, res, next) => {
 
 app.post('/pay-now', async (req, res) => {
   try {
-    // Check if the user is authorized to make the payment
-    const authorized = await checkAuthorization(req.session.userEmail);
-
-    if (!authorized) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-
     // Get user data from the "register" collection
     const client = new MongoClient(MONGODB_URI);
     await client.connect();
@@ -271,7 +283,8 @@ app.post('/pay-now', async (req, res) => {
       sailingDate,
       cruise,
       port,
-      amount,
+      departureDate,
+      seatNumber,
       timestamp: new Date(),
     };
 
