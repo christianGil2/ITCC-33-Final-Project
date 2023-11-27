@@ -80,11 +80,4 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
   }
 
-  function showAlert(message, redirectUrl) {
-    alert(`${message}. Click OK to proceed.`);
-    if (redirectUrl) {
-      window.location.href = redirectUrl;
-    }
-  }
-
 });

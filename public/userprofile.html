@@ -177,14 +177,24 @@
       // Function to update user profile
       async function updateProfile(event) {
         event.preventDefault(); // Prevent the form from submitting the traditional way
-    
+      
+        // Get the form element
+        const form = document.getElementById('updateProfileForm');
+      
+        // Check if the form is valid
+        if (!form.checkValidity()) {
+          // If the form is not valid, display an error message or handle it accordingly
+          alert('Please fill out all the required fields.');
+          return;
+        }
+      
         try {
           // Get updated city and phone number from the form
           const updatedCity = document.getElementById('updateCity').value;
           const updatedPhoneNum = document.getElementById('updatePhoneNum').value;
-    
+      
           console.log('Updating profile with:', { updatedCity, updatedPhoneNum });
-    
+      
           // Make a fetch request to update user profile
           const response = await fetch('/update-profile', {
             method: 'POST',
@@ -196,16 +206,19 @@
               phoneNum: updatedPhoneNum,
             }),
           });
-    
+      
           const result = await response.json();
           console.log('Profile update result:', result);
-    
+      
           // After updating, refresh the user profile information
           updateProfileInfo();
-    
+      
+          // Reset the form to clear the filled values
+          form.reset();
+      
           // Restore the update button text
           document.getElementById('updateButton').innerText = 'Update Profile';
-    
+      
           // Show confirmation message to the user
           if (result.success) {
             alert('Profile updated successfully!');
@@ -214,11 +227,11 @@
           }
         } catch (error) {
           console.error('Error updating user profile:', error);
-    
+      
           // Restore the update button text in case of an error
           document.getElementById('updateButton').innerText = 'Update Profile';
         }
-      }
+      }      
     </script>
   </body>
 </html>
