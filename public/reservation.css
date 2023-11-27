@@ -225,22 +225,6 @@ body {
     background-color: rgba(255, 255, 255, 0.2);
 }
 
-#revokeDropdown {
-    margin-top: 10px; /* add some space above the dropdown */
-}
-
-#revokeDropdown label {
-    display: block; /* make the label a block element to control its width */
-    margin-top: 10px;
-    margin-bottom: 5px; /* add some space below the label */
-}
-
-#revokeDropdown select {
-    width: 100%; /* make the select element fill its container */
-    padding: 4px; /* add some padding to the select box */
-    margin-bottom: 0px; 
-}
-
 footer {
     color: #000000;
     text-align: center;
