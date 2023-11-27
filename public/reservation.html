@@ -1,195 +1,218 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Reservation</title>
-    <link rel="stylesheet" href="reservation.css">
-</head>
-<body>
+    <link rel="stylesheet" href="reservation.css" />
+  </head>
+  <body>
     <header class="head-bar">
-        <nav class="navigation-bar">
-          <ul>
-            <li><a href="index2.html">Find your Cruise</a></li>
-            <li><a href="index2.html">Destinations</a></li>
-            <li><a href="index2.html">Cruise Lines</a></li>
-            <li><a href="index2.html">Ship</a></li>
-            <li><a href="index2.html">Ports</a></li>
-            <li><a href="index2.html">Cruise Guides</a></li>
-          </ul>
-        </nav>
-      </header>
+      <nav class="navigation-bar">
+        <ul>
+          <li><a href="index2.html">Find your Cruise</a></li>
+          <li><a href="index2.html">Destinations</a></li>
+          <li><a href="index2.html">Cruise Lines</a></li>
+          <li><a href="index2.html">Ship</a></li>
+          <li><a href="index2.html">Ports</a></li>
+          <li><a href="index2.html">Cruise Guides</a></li>
+        </ul>
+      </nav>
+    </header>
 
     <div class="reservation-form">
-        <h2>Your Balance: 5000<span id="balance"> pesos</span></h2>
+      <h2>Your Balance: 5000<span id="balance"> pesos</span></h2>
 
-        <label for="destination">Destination:</label>
-        <div class="select1">
-            <select id="destination" name="destinations">
-                <option value="" disabled selected>Destinations</option>
-                <option value="Siargao Island">Siargao Island</option>
-                <option value="Camiguin">Camiguin</option>
-                <option value="Ozamis">Ozamis</option>
-                <option value="Boracay">Boracay</option>
-                <option value="Zamboanga">Zamboanga</option>
-            </select>
-            <div class="select1_arrow"></div>
-        </div>
+      <label for="destination">Destination:</label>
+      <div class="select1">
+        <select id="destination" name="destinations">
+          <option value="" disabled selected>Destinations</option>
+          <option value="Siargao Island">Siargao Island</option>
+          <option value="Camiguin">Camiguin</option>
+          <option value="Ozamis">Ozamis</option>
+          <option value="Boracay">Boracay</option>
+          <option value="Zamboanga">Zamboanga</option>
+        </select>
+        <div class="select1_arrow"></div>
+      </div>
 
-        <label for="sailingDate">Sailing Date:</label>
-        <div class="select2">
-            <select id="sailingDate" name="sailingDates">
-                <option value="" disabled selected>Sailing Dates</option>
-                <option value="01/05/2024">01/05/2024</option>
-                <option value="02/03/2024">02/03/2024</option>
-                <option value="03/09/2024">03/09/2024</option>
-                <option value="04/13/2024">04/13/2024</option>
-                <option value="05/24/2024">05/24/2024</option>
-            </select>
-            <div class="select2_arrow"></div>
-        </div>
+      <label for="sailingDate">Sailing Date:</label>
+      <div class="select2">
+        <select id="sailingDate" name="sailingDates">
+          <option value="" disabled selected>Sailing Dates</option>
+          <option value="01/05/2024">01/05/2024</option>
+          <option value="02/03/2024">02/03/2024</option>
+          <option value="03/09/2024">03/09/2024</option>
+          <option value="04/13/2024">04/13/2024</option>
+          <option value="05/24/2024">05/24/2024</option>
+        </select>
+        <div class="select2_arrow"></div>
+      </div>
 
-        <label for="cruise">Cruise:</label>
-        <div class="select3">
-            <select id="cruise" name="cruiseLines">
-                <option value="" disabled selected>All Cruise</option>
-                <option value="2GO">2GO</option>
-                <option value="United Philippines Lines Inc">United Philippines Lines Inc</option>
-                <option value="OSM Maritime Services Inc">OSM Maritime Services Inc</option>
-                <option value="SSM Maritime Services Inc">SSM Maritime Services Inc</option>
-                <option value="Singa Ship Management Phils Inc">Singa Ship Management Phils Inc</option>
-            </select>
-            <div class="select3_arrow"></div>
-        </div>
+      <label for="cruise">Cruise:</label>
+      <div class="select3">
+        <select id="cruise" name="cruiseLines">
+          <option value="" disabled selected>All Cruise</option>
+          <option value="2GO">2GO</option>
+          <option value="United Philippines Lines Inc">
+            United Philippines Lines Inc
+          </option>
+          <option value="OSM Maritime Services Inc">
+            OSM Maritime Services Inc
+          </option>
+          <option value="SSM Maritime Services Inc">
+            SSM Maritime Services Inc
+          </option>
+          <option value="Singa Ship Management Phils Inc">
+            Singa Ship Management Phils Inc
+          </option>
+        </select>
+        <div class="select3_arrow"></div>
+      </div>
 
-        <label for="port">Port:</label>
-        <div class="select4">
-            <select id="port" name="port">
-                <option value="" disabled selected>Port</option>
-                <option value="Balingoan">Balingoan</option>
-                <option value="Cagayan de Oro">Cagayan de Oro</option>
-                <option value="Butuan">Butuan</option>
-                <option value="Dapitan">Dapitan</option>
-                <option value="Dipolog">Dipolog</option>
-            </select>
-            <div class="select4_arrow"></div>
-        </div>
-
+      <label for="port">Port:</label>
+      <div class="select4">
+        <select id="port" name="port">
+          <option value="" disabled selected>Port</option>
+          <option value="Balingoan">Balingoan</option>
+          <option value="Cagayan de Oro">Cagayan de Oro</option>
+          <option value="Butuan">Butuan</option>
+          <option value="Dapitan">Dapitan</option>
+          <option value="Dipolog">Dipolog</option>
+        </select>
+        <div class="select4_arrow"></div>
+      </div>
+      
+      <div class="center-content">
         <label for="amount">Amount:</label>
         <div id="amount">800 pesos</div>
+      </div>
 
-        <button class="reservationButton" id="payNow">Pay Now</button>
+      <button class="reservationButton" id="payNow">Pay Now</button>
 
-        <!-- Ticket display -->
-        <div id="ticket" class="hidden">
-            <h3>Ticket Details:</h3>
-            <p>Destination: <span id="ticketDestination"></span></p>
-            <p>Sailing Date: <span id="ticketSailingDate"></span></p>
-            <p>Cruise: <span id="ticketCruise"></span></p>
-            <p>Port: <span id="ticketPort"></span></p>
-            <p>Departure Schedule: <span id="ticketDepartureDate"></span></p>
-            <p>Seat Number: <span id="ticketSeatNumber"></span></p>
-        </div>
-        
+      <!-- Ticket display -->
+      <div id="ticket" class="hidden">
+        <h3>Ticket Details:</h3>
+        <p>Destination: <span id="ticketDestination"></span></p>
+        <p>Sailing Date: <span id="ticketSailingDate"></span></p>
+        <p>Cruise: <span id="ticketCruise"></span></p>
+        <p>Port: <span id="ticketPort"></span></p>
+        <p>Departure Schedule: <span id="ticketDepartureDate"></span></p>
+        <p>Seat Number: <span id="ticketSeatNumber"></span></p>
+      </div>
     </div>
     <footer>
-        <hr />
-        <p>&copy; Beyond The Sea, All rights reserved.</p>
+      <hr />
+      <p>&copy; Beyond The Sea, All rights reserved.</p>
     </footer>
     <script>
-        async function payNow() {
-            try {
-                // Use a more secure way to get the user's password, for example, an input field in a form
-                const password = document.getElementById("passwordInput").value;
-        
-                // Validate password input
-                if (!password) {
-                    alert("Please enter your password.");
-                    return;
-                }
-        
-                // Get selected values from dropdowns
-                const destination = document.getElementById("destination").value;
-                const sailingDate = document.getElementById("sailingDate").value;
-                const cruise = document.getElementById("cruise").value;
-                const port = document.getElementById("port").value;
-                const amount = document.getElementById("amount").innerText;
-        
-                // Check if any of the options are still in the "disabled selected" state
-                if (destination === "" || sailingDate === "" || cruise === "" || port === "") {
-                    alert("Please select values for all options.");
-                    return;
-                }
-        
-                // Make a POST request to the /pay-now endpoint with user password
-                const response = await fetch('/pay-now', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ destination, sailingDate, cruise, port, amount, password }),
-                });
-        
-                const data = await response.json();
-        
-                if (response.ok) {
-                    // Update the balance on the server and retrieve the updated balance
-                    const updatedBalance = await fetchUpdatedBalance();
-        
-                    // Display ticket details
-                    displayTicketDetails(data, updatedBalance);
-        
-                    alert(data.message);
-                } else {
-                    alert('Error processing payment. Please try again.');
-                }
-            } catch (error) {
-                console.error('Error during payment:', error);
-                alert('Error processing payment. Please try again.');
-            }
+      async function payNow() {
+        try {
+          // Use a more secure way to get the user's password, for example, an input field in a form
+          const password = document.getElementById("passwordInput").value;
+
+          // Validate password input
+          if (!password) {
+            alert("Please enter your password.");
+            return;
+          }
+
+          // Get selected values from dropdowns
+          const destination = document.getElementById("destination").value;
+          const sailingDate = document.getElementById("sailingDate").value;
+          const cruise = document.getElementById("cruise").value;
+          const port = document.getElementById("port").value;
+          const amount = document.getElementById("amount").innerText;
+
+          // Check if any of the options are still in the "disabled selected" state
+          if (
+            destination === "" ||
+            sailingDate === "" ||
+            cruise === "" ||
+            port === ""
+          ) {
+            alert("Please select values for all options.");
+            return;
+          }
+
+          // Make a POST request to the /pay-now endpoint with user password
+          const response = await fetch("/pay-now", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              destination,
+              sailingDate,
+              cruise,
+              port,
+              amount,
+              password,
+            }),
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            // Update the balance on the server and retrieve the updated balance
+            const updatedBalance = await fetchUpdatedBalance();
+
+            // Display ticket details
+            displayTicketDetails(data, updatedBalance);
+
+            alert(data.message);
+          } else {
+            alert("Error processing payment. Please try again.");
+          }
+        } catch (error) {
+          console.error("Error during payment:", error);
+          alert("Error processing payment. Please try again.");
         }
-        
-        async function fetchUpdatedBalance() {
-            // Make a request to the server to fetch the updated balance
-            const response = await fetch('/get-updated-balance');
-            const data = await response.json();
-        
-            if (response.ok) {
-                return data.updatedBalance;
-            } else {
-                console.error('Error fetching updated balance:', data.error);
-                return null;
-            }
+      }
+
+      async function fetchUpdatedBalance() {
+        // Make a request to the server to fetch the updated balance
+        const response = await fetch("/get-updated-balance");
+        const data = await response.json();
+
+        if (response.ok) {
+          return data.updatedBalance;
+        } else {
+          console.error("Error fetching updated balance:", data.error);
+          return null;
         }
-        
-        document.getElementById("payNow").addEventListener("click", payNow);
-        
-        function displayTicketDetails(ticketDetails, updatedBalance) {
-            const ticketElement = document.getElementById("ticket");
-            const ticketDestination = document.getElementById("ticketDestination");
-            const ticketSailingDate = document.getElementById("ticketSailingDate");
-            const ticketCruise = document.getElementById("ticketCruise");
-            const ticketPort = document.getElementById("ticketPort");
-            const ticketDepartureDate = document.getElementById("ticketDepartureDate");
-            const ticketSeatNumber = document.getElementById("ticketSeatNumber");
-            const balanceElement = document.getElementById("balance");
-        
-            // Update ticket details
-            ticketDestination.innerText = ticketDetails.destination;
-            ticketSailingDate.innerText = ticketDetails.sailingDate;
-            ticketCruise.innerText = ticketDetails.cruise;
-            ticketPort.innerText = ticketDetails.port;
-            ticketDepartureDate.innerText = ticketDetails.departureDate;
-            ticketSeatNumber.innerText = ticketDetails.seatNumber;
-        
-            // Update the displayed balance
-            if (updatedBalance !== null) {
-                balanceElement.innerText = `${updatedBalance} pesos`;
-            }
-        
-            // Show the ticket element
-            ticketElement.classList.remove("hidden");
+      }
+
+      document.getElementById("payNow").addEventListener("click", payNow);
+
+      function displayTicketDetails(ticketDetails, updatedBalance) {
+        const ticketElement = document.getElementById("ticket");
+        const ticketDestination = document.getElementById("ticketDestination");
+        const ticketSailingDate = document.getElementById("ticketSailingDate");
+        const ticketCruise = document.getElementById("ticketCruise");
+        const ticketPort = document.getElementById("ticketPort");
+        const ticketDepartureDate = document.getElementById(
+          "ticketDepartureDate"
+        );
+        const ticketSeatNumber = document.getElementById("ticketSeatNumber");
+        const balanceElement = document.getElementById("balance");
+
+        // Update ticket details
+        ticketDestination.innerText = ticketDetails.destination;
+        ticketSailingDate.innerText = ticketDetails.sailingDate;
+        ticketCruise.innerText = ticketDetails.cruise;
+        ticketPort.innerText = ticketDetails.port;
+        ticketDepartureDate.innerText = ticketDetails.departureDate;
+        ticketSeatNumber.innerText = ticketDetails.seatNumber;
+
+        // Update the displayed balance
+        if (updatedBalance !== null) {
+          balanceElement.innerText = `${updatedBalance} pesos`;
         }
+
+        // Show the ticket element
+        ticketElement.classList.remove("hidden");
+      }
     </script>
-</body>
+  </body>
 </html>
