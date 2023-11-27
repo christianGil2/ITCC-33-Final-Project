@@ -137,7 +137,7 @@ body {
     color: rgb(56, 56, 56)
 }
 
-/* Apply styles to the Pay Now button */
+/* Apply styles to the Reserve button */
 #reserveNow {
     appearance: none;
     background-color: transparent;
@@ -198,6 +198,31 @@ body {
 
 .hidden {
     display: none;
+}
+
+/* Apply styles to the Revoke Ticket button */
+#revokeTicket {
+    appearance: none;
+    background-color: transparent;
+    border: 2px solid white;
+    color: rgb(58, 57, 57);
+    padding: 12px 24px;
+    font-weight: 700;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 16px;
+    outline: none;
+    background: rgba(255, 255, 255, 0.58);
+    border-radius: 16px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.36);
+    transition: background-color 0.3s ease;
+}
+
+#revokeTicket:hover {
+    background-color: rgba(255, 255, 255, 0.2);
 }
 
 footer {
