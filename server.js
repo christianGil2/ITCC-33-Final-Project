@@ -424,10 +424,11 @@ app.post('/delete-ticket', async (req, res) => {
 
 async function deleteTicket(ticketsCollection, userEmail, ticketId) {
   try {
-    // Update this part to communicate with MongoDB and delete the ticket
+    const ticketObjectId = new ObjectId(ticketId);
+
     const deleteResult = await ticketsCollection.deleteOne({
       email: userEmail,
-      _id: ObjectId(ticketId),
+      _id: new ObjectId(ticketId),
     });
 
     if (deleteResult.deletedCount !== 1) {
