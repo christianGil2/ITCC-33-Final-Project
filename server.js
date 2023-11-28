@@ -408,8 +408,8 @@ app.post('/delete-ticket', async (req, res) => {
 
     const { ticketId } = req.body;
 
-    // Use the deleteTicket function to handle ticket deletion, passing ticketsCollection as a parameter
-    const result = await deleteTicket(ticketsCollection, user.email, ticketId);
+    // Use the modified deleteTicket function to handle ticket deletion, passing both collections as parameters
+    const result = await deleteTicket(ticketsCollection, cruiseScheduleCollection, user.email, ticketId);
 
     if (result.success) {
       res.json({ message: 'Ticket deleted successfully' });
@@ -422,18 +422,44 @@ app.post('/delete-ticket', async (req, res) => {
   }
 });
 
-async function deleteTicket(ticketsCollection, userEmail, ticketId) {
+// Updated deleteTicket function to remove corresponding cruise schedule data
+async function deleteTicket(ticketsCollection, cruiseScheduleCollection, userEmail, ticketId) {
   try {
     const ticketObjectId = new ObjectId(ticketId);
 
+    // Fetch the ticket details before deletion
+    const ticket = await ticketsCollection.findOne({
+      email: userEmail,
+      _id: ticketObjectId,
+    });
+
+    if (!ticket) {
+      console.error('Ticket not found:', ticketId);
+      return { success: false, error: 'Ticket not found' };
+    }
+
+    // Delete the ticket
     const deleteResult = await ticketsCollection.deleteOne({
       email: userEmail,
-      _id: new ObjectId(ticketId),
+      _id: ticketObjectId,
     });
 
     if (deleteResult.deletedCount !== 1) {
       console.error('Error deleting ticket:', deleteResult);
       return { success: false, error: 'Error deleting ticket' };
+    }
+
+    // Remove the corresponding cruise schedule data
+    const cruiseScheduleDeleteResult = await cruiseScheduleCollection.deleteOne({
+      cruiseShip: ticket.cruise,
+      cruisePort: ticket.port,
+      cruiseDeparture: ticket.sailingDate,
+      cruiseArrival: ticket.departureDate,
+    });
+
+    if (cruiseScheduleDeleteResult.deletedCount !== 1) {
+      console.error('Error deleting cruise schedule data:', cruiseScheduleDeleteResult);
+      return { success: false, error: 'Error deleting cruise schedule data' };
     }
 
     return { success: true }; // Return success without updated ticket information
