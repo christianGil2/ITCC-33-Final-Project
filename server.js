@@ -21,8 +21,9 @@ app.use(session({
 // MongoDB client for connection pooling
 const client = new MongoClient(MONGODB_URI);
 
-// Define the ticketsCollection
+const userCollection = client.db('register').collection('user');
 const ticketsCollection = client.db('register').collection('ticket');
+const cruiseScheduleCollection = client.db('register').collection('cruiseSchedule');
 
 // Define a function to generate the script for the pop-up
 function generatePopupScript(message, redirectUrl) {
@@ -215,12 +216,68 @@ function generateSeatNumber() {
   return Math.floor(1 + Math.random() * 3000);
 }
 
-async function storeTicket(ticket) {
+app.get('/get-cruise-schedule', async (req, res, next) => {
+  try {
+    await client.connect();
+    const cruiseScheduleData = await cruiseScheduleCollection.find().toArray();
+    res.json(cruiseScheduleData);
+  } catch (error) {
+    next(error);
+  } finally {
+    await client.close();
+  }
+});
+
+app.post('/add-cruise-schedule', async (req, res, next) => {
+  try {
+    const { cruiseShip, cruisePort, cruiseDeparture, cruiseArrival } = req.body;
+
+    if (!cruiseShip || !cruisePort || !cruiseDeparture || !cruiseArrival) {
+      return res.status(400).json({ error: 'Incomplete cruise schedule details' });
+    }
+
+    await client.connect();
+    const result = await cruiseScheduleCollection.insertOne({
+      cruiseShip,
+      cruisePort,
+      cruiseDeparture,
+      cruiseArrival,
+    });
+
+    if (result && result.acknowledged && result.insertedId) {
+      res.json({ success: true, message: 'Cruise schedule added successfully' });
+    } else {
+      console.error('Error adding cruise schedule:', result);
+      res.status(500).json({ success: false, error: 'Error adding cruise schedule' });
+    }
+  } catch (error) {
+    next(error);
+  } finally {
+    await client.close();
+  }
+});
+
+async function storeTicket(ticketsCollection, cruiseScheduleCollection, ticket) {
   try {
     const result = await ticketsCollection.insertOne(ticket);
 
     if (result && result.acknowledged && result.insertedId) {
       console.log('Ticket stored successfully:', ticket);
+
+      // Also add the cruise schedule data when storing a ticket
+      const cruiseScheduleResult = await cruiseScheduleCollection.insertOne({
+        cruiseShip: ticket.cruise,
+        cruisePort: ticket.port,
+        cruiseDeparture: ticket.sailingDate,
+        cruiseArrival: ticket.departureDate,
+      });
+
+      if (cruiseScheduleResult && cruiseScheduleResult.acknowledged && cruiseScheduleResult.insertedId) {
+        console.log('Cruise schedule added successfully:', cruiseScheduleResult);
+      } else {
+        console.error('Error adding cruise schedule:', cruiseScheduleResult);
+      }
+
       return true; // Ticket insertion successful
     } else {
       console.error('Error storing ticket details: Invalid result from MongoDB insertion');
@@ -234,7 +291,7 @@ async function storeTicket(ticket) {
 
 app.post('/reserve-now', async (req, res) => {
   const session = client.startSession();
-
+  
   try {
     await session.withTransaction(async () => {
       // Check if the user is authenticated
@@ -286,10 +343,10 @@ app.post('/reserve-now', async (req, res) => {
         timestamp: new Date(),
       };
 
-      // Use the storeTicket function to insert the ticket into the database
-      const result = await storeTicket(ticket);
+      // Use the storeTicket function to insert the data into the database
+      const resultTicket = await storeTicket(ticketsCollection, cruiseScheduleCollection, ticket);
 
-      if (result) {
+      if (resultTicket) {
         res.json({ message: 'Reservation successful. Ticket details stored.', ticketDetails: ticket });
       } else {
         res.status(500).json({ error: 'Error storing ticket details' });
